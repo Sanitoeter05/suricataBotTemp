@@ -4,7 +4,8 @@ import logger from './modules/logging';
 
 dotenv.config();
 
-const LOG_REGEX = /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
+const LOG_REGEX =
+    /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
 
 function checkIfReady(): boolean {
     return !!(
@@ -15,7 +16,6 @@ function checkIfReady(): boolean {
 }
 
 async function FastLogProcess(filepath: string): Promise<void> {
-
     const logContent = fs.readFileSync(filepath, 'utf-8');
     if (logContent.length === 0) return;
 
@@ -36,7 +36,7 @@ function parseFastLog(logLines: string): object[] {
 }
 
 function parseLogLine(logLine: string): object | null {
-    const match = logLine.match(LOG_REGEX);  // ← pre-compiled Regex
+    const match = logLine.match(LOG_REGEX); // ← pre-compiled Regex
     if (!match) return null;
 
     if (parseInt(match[7]) <= 2) {
@@ -77,7 +77,9 @@ async function sendToTelegram(message: string): Promise<boolean> {
         );
 
         if (!response.ok) {
-            logger.error(`Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`);
+            logger.error(
+                `Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`
+            );
             return false;
         }
         return true;
@@ -90,11 +92,16 @@ async function sendToTelegram(message: string): Promise<boolean> {
 if (checkIfReady()) {
     const filepath = process.env.fastFilePath as string;
     let processing = false;
+    let debounceTimer: NodeJS.Timeout | null = null;
 
     FastLogProcess(filepath).catch(console.error);
 
-    fs.watch(filepath, async (eventType) => {
-        if (eventType === 'change' && !processing) {
+    fs.watch(filepath, (eventType) => {
+        if (eventType !== 'change') return;
+
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            if (processing) return;
             processing = true;
             try {
                 await FastLogProcess(filepath);
@@ -103,8 +110,9 @@ if (checkIfReady()) {
                 console.error('Error processing log:', error);
             } finally {
                 processing = false;
+                debounceTimer = null;
             }
-        }
+        }, 200);
     });
 
     logger.info(`Watching ${filepath} for changes...`);
