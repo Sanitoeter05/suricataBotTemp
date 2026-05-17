@@ -4,75 +4,42 @@ import logger from './modules/logging';
 
 dotenv.config();
 
-function getLogContent(path: string): string {
-    if (!path) {
-        throw new Error('Path is not defined or is not there!');
-    }
-    const logFile = fs.readFileSync(path, 'utf-8');
-    return logFile;
-}
+const LOG_REGEX = /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
 
-function clearLogContent(path: string): void {
-    if (!path) {
-        throw new Error('Path is not defined or is not there!');
-    }
-    fs.writeFileSync(path, '');
-}
-
-function getFileSize(path: string): number {
-    if (!path) {
-        throw new Error('Path is not defined or is not there!');
-    }
-    const stats = fs.statSync(path);
-    return stats.size;
-}
 function checkIfReady(): boolean {
-    if (
+    return !!(
         process.env.fastFilePath &&
         process.env.telegramToken &&
         process.env.telegramChatId
-    ) {
-        return true;
-    }
-    return false;
+    );
 }
 
 async function FastLogProcess(filepath: string): Promise<void> {
-    const fileSize = getFileSize(filepath);
-    if (fileSize > 0) {
-        const logContent = parseFastLog(getLogContent(filepath));
-        for (const  logLine of logContent) {
-            const message = parseMessageTelegram(logLine);
-            await sendToTelegram(message);
-        }
-        clearLogContent(filepath);
-    }
-}
 
-async function main(): Promise<void> {
-    await FastLogProcess(process.env.fastFilePath as string);
+    const logContent = fs.readFileSync(filepath, 'utf-8');
+    if (logContent.length === 0) return;
+
+    const parsed = parseFastLog(logContent);
+    for (const logLine of parsed) {
+        await sendToTelegram(parseMessageTelegram(logLine));
+    }
+
+    fs.writeFileSync(filepath, '');
 }
 
 function parseFastLog(logLines: string): object[] {
-    let logs = [];
-    logs = logLines
+    return logLines
         .split(/\r?\n/)
         .filter((line) => line.trim() !== '')
         .map((line) => parseLogLine(line))
         .filter((log) => log !== null);
-    return logs;
 }
 
 function parseLogLine(logLine: string): object | null {
-    const regex =
-        /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
+    const match = logLine.match(LOG_REGEX);  // ← pre-compiled Regex
+    if (!match) return null;
 
-    const match = logLine.match(regex);
-
-    if (!match) {
-        return null; // Skip invalid lines instead of throwing
-    }
-    if (parseInt(match[7]) == 1 || parseInt(match[7]) == 2) {
+    if (parseInt(match[7]) <= 2) {
         logger.info('there is a priority log!:' + logLine);
     }
     return {
@@ -90,10 +57,8 @@ function parseLogLine(logLine: string): object | null {
 }
 
 function parseMessageTelegram(logLine: any): string {
-    if (!logLine) {
-        return '';
-    }
-    return `*New security alert with pritory: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
+    if (!logLine) return '';
+    return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
 }
 
 async function sendToTelegram(message: string): Promise<boolean> {
@@ -102,9 +67,7 @@ async function sendToTelegram(message: string): Promise<boolean> {
             `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
             {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: process.env.telegramChatId,
                     text: message,
@@ -114,37 +77,38 @@ async function sendToTelegram(message: string): Promise<boolean> {
         );
 
         if (!response.ok) {
-            console.error(
-                'Failed to send message to Telegram:',
-                response.statusText
-            );
-            logger.error(
-                `Failed to send message to Telegram: ${response.statusText}\n Message: ${message}`
-            );
+            logger.error(`Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`);
             return false;
-        } else {
-            return true;
         }
+        return true;
     } catch (error) {
-        logger.error(`Error sending message to Telegram: ${error}`);
-        console.error('Error sending message to Telegram:', error);
+        logger.error(`Error sending to Telegram: ${error}`);
         return false;
     }
 }
 
 if (checkIfReady()) {
-    (async () => {
-        while (true) {
+    const filepath = process.env.fastFilePath as string;
+    let processing = false;
+
+    FastLogProcess(filepath).catch(console.error);
+
+    fs.watch(filepath, async (eventType) => {
+        if (eventType === 'change' && !processing) {
+            processing = true;
             try {
-                await main();
+                await FastLogProcess(filepath);
             } catch (error) {
-                console.error('Error in main:', error);
+                logger.error(`Error processing log: ${error}`);
+                console.error('Error processing log:', error);
+            } finally {
+                processing = false;
             }
-            await new Promise((resolve) => setTimeout(resolve, 60 * 1000)); // Wait for 1 second before checking the log file again
         }
-    })().catch((error) => {
-        console.error('Fatal error in main loop:', error);
     });
+
+    logger.info(`Watching ${filepath} for changes...`);
 } else {
     console.error('Please set the environment variables in .env file!');
+    process.exit(1);
 }
