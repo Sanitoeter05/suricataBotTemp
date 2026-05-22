@@ -1,5 +1,13 @@
 import logger from './logging';
 import { LogLine } from '../types/types';
+import { Agent, setGlobalDispatcher } from 'undici';
+
+
+setGlobalDispatcher(new Agent({
+    keepAliveTimeout: 30000,
+    keepAliveMaxTimeout: 60000,
+    connections: 30,
+}));
 
 export default class Bot {
     static parseMessageTelegram(logLine: LogLine): string {

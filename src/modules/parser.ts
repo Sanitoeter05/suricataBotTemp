@@ -5,11 +5,12 @@ export default class Parser {
 
     private static readonly LOG_REGEX =
     /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
+    private static readonly LINE_SPLIT = /\r?\n/;
 
 
     static parseFastLog(logLines: string): LogLine[]{
         return logLines
-            .split(/\r?\n/)
+            .split(this.LINE_SPLIT)
             .filter((line) => line.trim() !== '')
             .map((line) => this.parseLogLine(line))
             .filter((log) => log !== null) as LogLine[];
