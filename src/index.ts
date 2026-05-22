@@ -1,11 +1,11 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
 import logger from './modules/logging';
+import Bot from './modules/bot';
+import Parser from './modules/parser';
+import { LogLine } from './types/types';
 
 dotenv.config();
-
-const LOG_REGEX =
-    /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
 
 function checkIfReady(): boolean {
     return !!(
@@ -19,74 +19,17 @@ async function FastLogProcess(filepath: string): Promise<void> {
     const logContent = fs.readFileSync(filepath, 'utf-8');
     if (logContent.length === 0) return;
 
-    const parsed = parseFastLog(logContent);
-    for (const logLine of parsed) {
-        await sendToTelegram(parseMessageTelegram(logLine));
-    }
-
+    const parsed = Parser.parseFastLog(logContent);
+    await sendAsyncMessages(parsed);
     fs.writeFileSync(filepath, '');
 }
 
-function parseFastLog(logLines: string): object[] {
-    return logLines
-        .split(/\r?\n/)
-        .filter((line) => line.trim() !== '')
-        .map((line) => parseLogLine(line))
-        .filter((log) => log !== null);
-}
-
-function parseLogLine(logLine: string): object | null {
-    const match = logLine.match(LOG_REGEX); // ← pre-compiled Regex
-    if (!match) return null;
-
-    if (parseInt(match[7]) <= 2) {
-        logger.info('there is a priority log!:' + logLine);
-    }
-    return {
-        timestamp: match[1],
-        generatorId: match[2],
-        signatureId: match[3],
-        revision: match[4],
-        message: match[5],
-        classification: match[6],
-        priority: parseInt(match[7]),
-        protocol: match[8],
-        sourceAddr: match[9],
-        destAddr: match[10],
-    };
-}
-
-function parseMessageTelegram(logLine: any): string {
-    if (!logLine) return '';
-    return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
-}
-
-async function sendToTelegram(message: string): Promise<boolean> {
-    try {
-        const response = await fetch(
-            `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: process.env.telegramChatId,
-                    text: message,
-                    parse_mode: 'Markdown',
-                }),
-            }
-        );
-
-        if (!response.ok) {
-            logger.error(
-                `Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`
-            );
-            return false;
-        }
-        return true;
-    } catch (error) {
-        logger.error(`Error sending to Telegram: ${error}`);
-        return false;
-    }
+async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
+    await Promise.all(
+        parsedMessageArray.map(async (logLine) => {
+            await Bot.sendToTelegram(Bot.parseMessageTelegram(logLine));
+        })
+    );
 }
 
 if (checkIfReady()) {
