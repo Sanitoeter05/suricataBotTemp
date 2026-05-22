@@ -1,7 +1,7 @@
 import logger from './logging';
 import { LogLine } from '../types/types';
-import { Agent, setGlobalDispatcher } from 'undici';
-
+// @ts-ignore
+import { Agent, setGlobalDispatcher } from 'node:undici';
 
 setGlobalDispatcher(new Agent({
     keepAliveTimeout: 30000,
