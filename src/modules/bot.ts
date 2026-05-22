@@ -1,13 +1,13 @@
 import logger from './logging';
 import { LogLine } from '../types/types';
-// @ts-ignore
-import { Agent, setGlobalDispatcher } from 'node:undici';
+import https from 'https';
 
-setGlobalDispatcher(new Agent({
-    keepAliveTimeout: 30000,
-    keepAliveMaxTimeout: 60000,
-    connections: 30,
-}));
+const agent = new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 30000,
+    maxSockets: 30,
+    maxFreeSockets: 10,
+});
 
 export default class Bot {
     static parseMessageTelegram(logLine: LogLine): string {
@@ -27,6 +27,8 @@ export default class Bot {
                         text: message,
                         parse_mode: 'Markdown',
                     }),
+                    //@ts-ignore
+                    agent: agent,
                 }
             );
 
