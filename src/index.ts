@@ -17,11 +17,15 @@ function checkIfReady(): boolean {
 
 async function FastLogProcess(filepath: string): Promise<void> {
     const logContent = fs.readFileSync(filepath, 'utf-8');
-    if (logContent.length === 0) return;
-
-    const parsed = Parser.parseFastLog(logContent);
-    await sendAsyncMessages(parsed);
     fs.writeFileSync(filepath, '');
+    if (logContent.length === 0) return;
+    const parsed = Parser.parseFastLog(logContent);
+    try {
+        await sendAsyncMessages(parsed);
+    } catch (error) {
+        logger.error(`Error sending messages: ${error}`);
+        fs.appendFileSync(`${__dirname}/failed_logs.txt`, logContent);
+    };
 }
 
 async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
@@ -37,7 +41,11 @@ if (checkIfReady()) {
     let processing = false;
     let debounceTimer: NodeJS.Timeout | null = null;
 
-    FastLogProcess(filepath).catch(console.error);
+    try {
+        FastLogProcess(filepath).catch(console.error);
+    } catch (error) {
+        console.error('Error processing log:', error);
+    }
 
     fs.watch(filepath, (eventType) => {
         if (eventType !== 'change') return;

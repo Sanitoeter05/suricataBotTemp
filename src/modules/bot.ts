@@ -15,33 +15,29 @@ export default class Bot {
         return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
     }
 
-    static async sendToTelegram(message: string): Promise<boolean> {
-        try {
-            const response = await fetch(
-                `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: process.env.telegramChatId,
-                        text: message,
-                        parse_mode: 'Markdown',
-                    }),
-                    //@ts-ignore
-                    agent: agent,
-                }
-            );
-
-            if (!response.ok) {
-                logger.error(
-                    `Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`
-                );
-                return false;
+    static async sendToTelegram(message: string): Promise<void> {
+        const response = await fetch(
+            `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: process.env.telegramChatId,
+                    text: message,
+                    parse_mode: 'Markdown',
+                }),
+                //@ts-ignore
+                agent: agent,
             }
-            return true;
-        } catch (error) {
-            logger.error(`Error sending to Telegram: ${error}`);
-            return false;
+        );
+
+        if (!response.ok) {
+            logger.error(
+                `Failed to send to Telegram: ${response.statusText}\nMessage: ${message}`
+            );
+            throw new Error(
+                `Failed to send to Telegram: ${response.statusText}`
+            );
         }
     }
 }
