@@ -14,25 +14,35 @@ function testParserProcess(
     check: LogLine
 ): { [key: string]: TestResult } {
     let parserValues: { [key: string]: [number, number, number, boolean] } = {};
+    
+    parser.clearCache();
     parserValues['single'] = unitTestsBuilder.measure(
         new testSingleProf(),
         rawLogLine,
         check
     );
+    
+    parser.clearCache();
     parserValues['multiple'] = unitTestsBuilder.measure(
         new testMultiProf(),
         multiplyString(rawLogLine, 30),
         check
     );
+    
+    parser.clearCache();
     parserValues['stress'] = unitTestsBuilder.measure(
         new testMultiProf(),
         multiplyString(rawLogLine, 1000),
         check
     );
+    
+    parser.clearCache();
     parserValues['error'] = unitTestsBuilderError.measure(
         new testErrorParse(),
         errorLine
     );
+    
+    parser.clearCache();
     parserValues['null'] = unitTestsBuilderError.measure(
         new testNullParse(),
         ''
