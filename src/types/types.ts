@@ -6,7 +6,9 @@ export interface LogLine {
     protocol: string;
     sourceAddr: string;
     destAddr: string;
-    signatureId: number;
+    signatureId: string;
+    generatorId: string;
+    revision: string;
 }
 
 export type TestResult = [number, number, number, boolean];
