@@ -11,7 +11,7 @@ export default class Parser {
         return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
     }
 
-    static parseFastLog(logLines: string): LogLine[]  {
+    static parseFastLog(logLines: string): LogLine[] {
         if (logLines.length === 0) return [];
         return logLines
             .split(this.LINE_SPLIT)
@@ -25,7 +25,7 @@ export default class Parser {
         if (!match) throw new Error('Failed to parse log line');
 
         const priority = parseInt(match[7]);
-        
+
         if (priority <= 2) {
             logger.info('there is a priority log!:' + internLogMassage);
         }

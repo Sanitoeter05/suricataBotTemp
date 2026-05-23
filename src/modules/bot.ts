@@ -9,7 +9,6 @@ const agent = new https.Agent({
 });
 
 export default class Bot {
-
     static async sendToTelegram(message: string): Promise<void> {
         const response = await fetch(
             `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,

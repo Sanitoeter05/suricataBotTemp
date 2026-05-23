@@ -13,7 +13,7 @@ function testParserProcess(
     errorLine: string,
     check: LogLine
 ): { [key: string]: TestResult } {
-    let parserValues: { [key: string]: [number, number, number,boolean] } = {};
+    let parserValues: { [key: string]: [number, number, number, boolean] } = {};
     parserValues['single'] = unitTestsBuilder.measure(
         new testSingleProf(),
         rawLogLine,
@@ -35,7 +35,7 @@ function testParserProcess(
     );
     parserValues['null'] = unitTestsBuilderError.measure(
         new testNullParse(),
-        ""
+        ''
     );
     return parserValues;
 }
@@ -73,11 +73,11 @@ class testErrorParse implements unitTestsBuilderError {
     }
 }
 
-class testNullParse implements unitTestsBuilderError{
-    run (errorLine: string): boolean {
+class testNullParse implements unitTestsBuilderError {
+    run(errorLine: string): boolean {
         return parser.parseFastLog(errorLine)[0] === undefined;
-    };
-};
+    }
+}
 
 function validateParserData(parsed: LogLine[], check: LogLine) {
     let passed = true;
