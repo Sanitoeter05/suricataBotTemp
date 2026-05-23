@@ -1,5 +1,4 @@
 import logger from './logging';
-import { LogLine } from '../types/types';
 import https from 'https';
 
 const agent = new https.Agent({
@@ -10,10 +9,6 @@ const agent = new https.Agent({
 });
 
 export default class Bot {
-    static parseMessageTelegram(logLine: LogLine): string {
-        if (!logLine) return '';
-        return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
-    }
 
     static async sendToTelegram(message: string): Promise<void> {
         const response = await fetch(

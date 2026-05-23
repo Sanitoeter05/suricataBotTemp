@@ -6,6 +6,11 @@ export default class Parser {
         /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
     private static readonly LINE_SPLIT = /\r?\n/;
 
+    static parseMessageTelegram(logLine: LogLine): string {
+        if (!logLine) return '';
+        return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
+    }
+
     static parseFastLog(logLines: string): LogLine[]  {
         if (logLines.length === 0) return [];
         return logLines
