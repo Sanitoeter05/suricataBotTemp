@@ -1,55 +1,84 @@
-import { LogLine } from '../types/types';
+import {
+    LogLine,
+    unitTestsBuilder,
+    TestResult,
+    unitTestsBuilderError,
+} from '../types/types';
 import parser from './../modules/parser';
-import { performance } from 'perf_hooks';
-import { readFileSync } from "fs"
+import { readFileSync } from 'fs';
 
-function testParserProcess(rawLogLine: string, errorLine:string, check:LogLine, ):{[key: string]: [number, number, boolean]} {
-    let parserValues:{[key: string]: [number,number ,boolean]} = {};
-    parserValues["single"] = testSingleProf(rawLogLine, check);
-    parserValues["multiple"] = testMultiProf(multiplyString(rawLogLine, 30), check);
-    parserValues["stress"] = testMultiProf(multiplyString(rawLogLine, 1000), check);
-    parserValues["error"] = testErrorParse(errorLine);
+function testParserProcess(
+    rawLogLine: string,
+    errorLine: string,
+    check: LogLine
+): { [key: string]: TestResult } {
+    let parserValues: { [key: string]: [number, number, boolean] } = {};
+    parserValues['single'] = unitTestsBuilder.measure(
+        new testSingleProf(),
+        rawLogLine,
+        check
+    );
+    parserValues['multiple'] = unitTestsBuilder.measure(
+        new testMultiProf(),
+        multiplyString(rawLogLine, 30),
+        check
+    );
+    parserValues['stress'] = unitTestsBuilder.measure(
+        new testMultiProf(),
+        multiplyString(rawLogLine, 1000),
+        check
+    );
+    parserValues['error'] = unitTestsBuilderError.measure(
+        new testErrorParse(),
+        errorLine
+    );
+    parserValues['null'] = unitTestsBuilderError.measure(
+        new testNullParse(),
+        ""
+    );
     return parserValues;
-};
+}
 
-function testSingleProf(rawLogLine:string, check:LogLine):[number,number, boolean] {
-    const memStart = process.memoryUsage().heapUsed;
-    const startTime = performance.now();
-    let parsed = parser.parseFastLog(rawLogLine);
-    let passed = isEqualResults(parsed[0], check);
-    const endTime = performance.now();
-    const memEnd = process.memoryUsage().heapUsed;
-    return [endTime - startTime, (memEnd - memStart)/1024, passed];
-};
+class testSingleProf implements unitTestsBuilder {
+    run(rawLogLine: string): LogLine[] {
+        return parser.parseFastLog(rawLogLine);
+    }
+    validate(parsedData: LogLine[], check?: LogLine): boolean {
+        return isEqualResults(parsedData[0], check!);
+    }
+}
 
-function testMultiProf(rawLogLine:string, check:LogLine):[number,number, boolean ] {
-    const startTime = performance.now();
-    const memStart = process.memoryUsage().heapUsed;
-    let parsed = parser.parseFastLog(rawLogLine);
-    const endTime = performance.now();
-    const memEnd = process.memoryUsage().heapUsed;
-    return [endTime - startTime, (memEnd - memStart)/1024, validateParserData(parsed, check)];
-};
+class testMultiProf implements unitTestsBuilder {
+    run(rawLogLine: string): LogLine[] {
+        return parser.parseFastLog(rawLogLine);
+    }
+    validate(parsedData: LogLine[], check?: LogLine): boolean {
+        return validateParserData(parsedData, check!);
+    }
+}
 
-
-function testErrorParse(errorLine:string):[number,number, boolean, ] {
-    const startTime = performance.now();
-    const memStart = process.memoryUsage().heapUsed;
-    let passed = false;
-    try {
-        parser.parseFastLog(errorLine);
-    } catch (error) {
-        //@ts-ignore
-        if (error.message === "Failed to parse log line") {
-            passed = true;
+class testErrorParse implements unitTestsBuilder {
+    run(errorLine: string): boolean {
+        let passed = false;
+        try {
+            parser.parseFastLog(errorLine);
+        } catch (error) {
+            //@ts-ignore
+            if (error.message === 'Failed to parse log line') {
+                passed = true;
+            }
         }
+        return passed;
+    }
+}
+
+class testNullParse implements unitTestsBuilderError{
+    run (errorLine: string): boolean {
+        return parser.parseFastLog(errorLine)[0] === undefined;
     };
-    const endTime = performance.now();
-    const memEnd = process.memoryUsage().heapUsed;
-    return [endTime - startTime, (memEnd - memStart)/1024, passed];
 };
 
-function validateParserData(parsed:LogLine[], check:LogLine){
+function validateParserData(parsed: LogLine[], check: LogLine) {
     let passed = true;
     parsed.map((logLine) => {
         if (!isEqualResults(logLine, check)) {
@@ -57,25 +86,30 @@ function validateParserData(parsed:LogLine[], check:LogLine){
         }
     });
     return passed;
-};
+}
 
 function multiplyString(str: string, times: number): string {
-    let result = "";
+    let result = '';
     for (let i = 0; i < times; i++) {
-        result += str+ "\n";
+        result += str + '\n';
     }
     return result;
-};
+}
 
-function isEqualResults(result:LogLine, check:LogLine):boolean {
+function isEqualResults(result: LogLine, check: LogLine): boolean {
     return JSON.stringify(check) === JSON.stringify(result);
-};
+}
 
-function runTests(){
-    let testData = JSON.parse(readFileSync("./testData/payLoads.json", "utf-8"));
-    let testResults = testParserProcess(testData.parser.parseString, testData.parser.errorString, testData.parser.check);
+function runTests() {
+    let testData = JSON.parse(
+        readFileSync('./testData/payLoads.json', 'utf-8')
+    );
+    let testResults = testParserProcess(
+        testData.parser.parseString,
+        testData.parser.errorString,
+        testData.parser.check
+    );
     console.log(testResults);
-};
-
+}
 
 runTests();

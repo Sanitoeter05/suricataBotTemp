@@ -7,6 +7,7 @@ export default class Parser {
     private static readonly LINE_SPLIT = /\r?\n/;
 
     static parseFastLog(logLines: string): LogLine[]  {
+        if (logLines.length === 0) return [];
         return logLines
             .split(this.LINE_SPLIT)
             .filter((line) => line.trim() !== '')
