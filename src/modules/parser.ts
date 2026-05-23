@@ -17,9 +17,11 @@ export default class Parser {
 
     private static parseLogLine(internLogMassage: string): object | null {
         const match = internLogMassage.match(this.LOG_REGEX);
-        if (!match) throw new Error(`Failed to parse log line`);
+        if (!match) throw new Error('Failed to parse log line');
 
-        if (parseInt(match[7]) <= 2) {
+        const priority = parseInt(match[7]);
+        
+        if (priority <= 2) {
             logger.info('there is a priority log!:' + internLogMassage);
         }
         return {
@@ -29,7 +31,7 @@ export default class Parser {
             revision: match[4],
             message: match[5],
             classification: match[6],
-            priority: parseInt(match[7]),
+            priority: priority,
             protocol: match[8],
             sourceAddr: match[9],
             destAddr: match[10],

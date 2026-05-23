@@ -7,12 +7,13 @@ import {
 import parser from './../modules/parser';
 import { readFileSync } from 'fs';
 
+//TODO need to add type for response
 function testParserProcess(
     rawLogLine: string,
     errorLine: string,
     check: LogLine
 ): { [key: string]: TestResult } {
-    let parserValues: { [key: string]: [number, number, boolean] } = {};
+    let parserValues: { [key: string]: [number, number, number,boolean] } = {};
     parserValues['single'] = unitTestsBuilder.measure(
         new testSingleProf(),
         rawLogLine,
@@ -57,7 +58,7 @@ class testMultiProf implements unitTestsBuilder {
     }
 }
 
-class testErrorParse implements unitTestsBuilder {
+class testErrorParse implements unitTestsBuilderError {
     run(errorLine: string): boolean {
         let passed = false;
         try {

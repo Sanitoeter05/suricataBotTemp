@@ -9,7 +9,7 @@ export interface LogLine {
     signatureId: number;
 };
 
-export type TestResult = [number, number, boolean];
+export type TestResult = [number, number, number,boolean];
 
 export interface unitTest {
     run(rawLogLine:string|string[]): LogLine[];
@@ -22,12 +22,14 @@ export interface unitTestError {
 
 export class unitTestsBuilder {
     static measure (task: unitTest, rawLogLine:string|string[], check?:LogLine): TestResult {
-        const startTime = performance.now();
         const memStart = process.memoryUsage().heapUsed;
+        const cpuStart = process.cpuUsage();
+        const startTime = performance.now();
         let parsedData = task.run(rawLogLine);
         const endTime = performance.now();
         const memEnd = process.memoryUsage().heapUsed;
-        return [endTime - startTime, (memEnd - memStart)/1024, task.validate(parsedData, check)];
+        const cpuEnd = process.cpuUsage(cpuStart);
+        return [endTime - startTime, (memEnd - memStart)/1024, (cpuEnd.user + cpuEnd.system)/1000, task.validate(parsedData, check)];
     };
 };
 
@@ -35,9 +37,11 @@ export class unitTestsBuilderError {
     static measure (task: unitTestError, errorLine: string): TestResult {
         const startTime = performance.now();
         const memStart = process.memoryUsage().heapUsed;
+        const cpuStart = process.cpuUsage();
         const passed = task.run(errorLine);
         const endTime = performance.now();
         const memEnd = process.memoryUsage().heapUsed;
-        return [endTime - startTime, (memEnd - memStart)/1024, passed];
+        const cpuEnd = process.cpuUsage(cpuStart);
+        return [endTime - startTime, (memEnd - memStart)/1024, (cpuEnd.user + cpuEnd.system)/1000, passed];
     };
 }
