@@ -13,29 +13,39 @@ function testParserProcess(
     errorLine: string,
     check: LogLine
 ): { [key: string]: TestResult } {
-    const parserValues: { [key: string]: [number, number, number,boolean] } = {};
+    let parserValues: { [key: string]: [number, number, number, boolean] } = {};
+    
+    parser.clearCache();
     parserValues['single'] = unitTestsBuilder.measure(
         new testSingleProf(),
         rawLogLine,
         check
     );
+    
+    parser.clearCache();
     parserValues['multiple'] = unitTestsBuilder.measure(
         new testMultiProf(),
         multiplyString(rawLogLine, 30),
         check
     );
+    
+    parser.clearCache();
     parserValues['stress'] = unitTestsBuilder.measure(
         new testMultiProf(),
         multiplyString(rawLogLine, 1000),
         check
     );
+    
+    parser.clearCache();
     parserValues['error'] = unitTestsBuilderError.measure(
         new testErrorParse(),
         errorLine
     );
+    
+    parser.clearCache();
     parserValues['null'] = unitTestsBuilderError.measure(
         new testNullParse(),
-        ""
+        ''
     );
     return parserValues;
 }
@@ -74,11 +84,11 @@ class testErrorParse implements unitTestsBuilderError {
     }
 }
 
-class testNullParse implements unitTestsBuilderError{
-    run (errorLine: string): boolean {
+class testNullParse implements unitTestsBuilderError {
+    run(errorLine: string): boolean {
         return parser.parseFastLog(errorLine)[0] === undefined;
-    };
-};
+    }
+}
 
 function validateParserData(parsed: LogLine[], check: LogLine) {
     let passed = true;

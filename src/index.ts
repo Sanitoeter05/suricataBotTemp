@@ -56,12 +56,20 @@ function watchFile(filepath: string) {
 
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
-            [processing, debounceTimer] = await handleFileChange(filepath, processing, debounceTimer);
+            [processing, debounceTimer] = await handleFileChange(
+                filepath,
+                processing,
+                debounceTimer
+            );
         }, 200);
     });
-};
+}
 
-async function handleFileChange(filepath: string, processing: boolean, debounceTimer: NodeJS.Timeout | null): Promise<[boolean, NodeJS.Timeout | null]> {
+async function handleFileChange(
+    filepath: string,
+    processing: boolean,
+    debounceTimer: NodeJS.Timeout | null
+): Promise<[boolean, NodeJS.Timeout | null]> {
     if (processing) return [processing, debounceTimer];
     try {
         await FastLogProcess(filepath);
@@ -78,4 +86,4 @@ function initialFilePull(filepath: string) {
     } catch (error) {
         console.error('Error processing log:', error);
     }
-};
+}
