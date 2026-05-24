@@ -10,6 +10,14 @@ const agent = new https.Agent({
 
 export default class Bot {
 
+    static botIsConfigured(): boolean {
+        return false;
+    };
+
+    static botIsHealthy():boolean{
+        return false;
+    };
+
     static async sendToTelegram(message: string): Promise<void> {
         const response = await fetch(
             `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
@@ -21,7 +29,7 @@ export default class Bot {
                     text: message,
                     parse_mode: 'Markdown',
                 }),
-                //@ts-ignore
+                //@ts-expect-error it is nessesery becaurse TS doesnt know it
                 agent: agent,
             }
         );

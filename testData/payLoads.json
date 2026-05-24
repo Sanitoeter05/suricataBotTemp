@@ -14,5 +14,20 @@
             "sourceAddr": "2a02:0908:2011:6840:b63e:5174:286c:4154:57326",
             "destAddr": "2a00:1450:400e:080b:0000:0000:0000:200e:80"
         }
+    },
+    "telegramBot": {
+        "parsed": {
+            "timestamp": "05/23/2026-01:02:22.031371",
+            "generatorId": "1",
+            "signatureId": "3300109",
+            "revision": "5",
+            "message": "🐾 - 🚨 Curl User Agent 🌐",
+            "classification": "Potential Corporate Privacy Violation",
+            "priority": 1,
+            "protocol": "TCP",
+            "sourceAddr": "2a02:0908:2011:6840:b63e:5174:286c:4154:57326",
+            "destAddr": "2a00:1450:400e:080b:0000:0000:0000:200e:80"
+        },
+        "check": "200"
     }
 }

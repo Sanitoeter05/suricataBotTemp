@@ -63,15 +63,13 @@ function watchFile(filepath: string) {
 
 async function handleFileChange(filepath: string, processing: boolean, debounceTimer: NodeJS.Timeout | null): Promise<[boolean, NodeJS.Timeout | null]> {
     if (processing) return [processing, debounceTimer];
-    processing = true;
     try {
         await FastLogProcess(filepath);
     } catch (error) {
         logger.error(`Error processing log: ${error}`);
         console.error('Error processing log:', error);
-    } finally {
-        return [false,null];
     }
+    return [false,null];
 }
 
 function initialFilePull(filepath: string) {

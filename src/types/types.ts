@@ -25,7 +25,7 @@ export class unitTestsBuilder {
         const memStart = process.memoryUsage().heapUsed;
         const cpuStart = process.cpuUsage();
         const startTime = performance.now();
-        let parsedData = task.run(rawLogLine);
+        const parsedData = task.run(rawLogLine);
         const endTime = performance.now();
         const memEnd = process.memoryUsage().heapUsed;
         const cpuEnd = process.cpuUsage(cpuStart);

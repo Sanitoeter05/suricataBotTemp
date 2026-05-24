@@ -13,7 +13,7 @@ function testParserProcess(
     errorLine: string,
     check: LogLine
 ): { [key: string]: TestResult } {
-    let parserValues: { [key: string]: [number, number, number,boolean] } = {};
+    const parserValues: { [key: string]: [number, number, number,boolean] } = {};
     parserValues['single'] = unitTestsBuilder.measure(
         new testSingleProf(),
         rawLogLine,
@@ -64,7 +64,8 @@ class testErrorParse implements unitTestsBuilderError {
         try {
             parser.parseFastLog(errorLine);
         } catch (error) {
-            //@ts-ignore
+            //@ts-expect-error it is nessesery becaurse TS doesnt know it
+
             if (error.message === 'Failed to parse log line') {
                 passed = true;
             }
@@ -102,10 +103,10 @@ function isEqualResults(result: LogLine, check: LogLine): boolean {
 }
 
 function runTests() {
-    let testData = JSON.parse(
+    const testData = JSON.parse(
         readFileSync('./testData/payLoads.json', 'utf-8')
     );
-    let testResults = testParserProcess(
+    const testResults = testParserProcess(
         testData.parser.parseString,
         testData.parser.errorString,
         testData.parser.check
