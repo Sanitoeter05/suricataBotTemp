@@ -29,7 +29,7 @@ export default class Parser {
                 
                 // Cache-Hit: gecachtes Objekt + frische Daten (timestamp, IPs)
                 if (this.logCache.has(cacheKey)) {
-                    const cached = this.logCache.get(cacheKey) as any;
+                    const cached = this.logCache.get(cacheKey) as { [key: string]: string | number  };
                     const timestampMatch = line.match(this.TIMESTAMP_REGEX);
                     const addressesMatch = line.match(this.ADDRESSES_REGEX);
                     

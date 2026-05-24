@@ -13,7 +13,7 @@ function testParserProcess(
     errorLine: string,
     check: LogLine
 ): { [key: string]: TestResult } {
-    let parserValues: { [key: string]: [number, number, number, boolean] } = {};
+    const parserValues: { [key: string]: [number, number, number, boolean] } = {};
     
     parser.clearCache();
     parserValues['single'] = unitTestsBuilder.measure(
