@@ -4,7 +4,7 @@ import logger from './modules/logging';
 import Bot from './modules/bot';
 import Parser from './modules/parser';
 import { LogLine } from './types/types';
-
+import machine from './modules/machine';
 dotenv.config();
 
 async function checkIfReady(): Promise<boolean> {
@@ -52,16 +52,22 @@ async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
 function watchFile(filepath: string) {
     let processing = false;
     let debounceTimer: NodeJS.Timeout | null = null;
-
-    fs.watch(filepath, (eventType) => {
+    let failCounter = 0;
+    fs.watch(filepath, async (eventType) => {
         if (eventType !== 'change') return;
+        
+        if(failCounter >= 5 && await machine.canConnectToTelegram()) {
+            setTimeout(() => {}, 500);
+            failCounter= 0;
+        }; 
 
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
-            [processing, debounceTimer] = await handleFileChange(
+            [processing, debounceTimer, failCounter] = await handleFileChange(
                 filepath,
                 processing,
-                debounceTimer
+                debounceTimer,
+                failCounter
             );
         }, 200);
     });
@@ -70,16 +76,17 @@ function watchFile(filepath: string) {
 async function handleFileChange(
     filepath: string,
     processing: boolean,
-    debounceTimer: NodeJS.Timeout | null
-): Promise<[boolean, NodeJS.Timeout | null]> {
-    if (processing) return [processing, debounceTimer];
+    debounceTimer: NodeJS.Timeout | null,
+    failCounter: number
+): Promise<[boolean, NodeJS.Timeout | null, number]> {
+    if (processing) return [processing, debounceTimer, failCounter];
     try {
         await FastLogProcess(filepath);
     } catch (error) {
+        failCounter++;
         logger.error(`Error processing log: ${error}`);
-        console.error('Error processing log:', error);
     }
-    return [false, null];
+    return [false, null, failCounter];
 }
 
 function initialFilePull(filepath: string) {
