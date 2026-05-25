@@ -1,5 +1,6 @@
 import logger from './logging';
 import https from 'https';
+import machine from './machine';
 
 const agent = new https.Agent({
     keepAlive: true,
@@ -10,15 +11,37 @@ const agent = new https.Agent({
 
 export default class Bot {
 
-    static botIsConfigured(): boolean {
+    public static async botIsHealthy(): Promise<boolean> {
+        if (machine.hasInterface() && await machine.canConnectToTelegram() && await this.sendAliveMessage()) {
+            return true;
+        }
         return false;
     };
 
-    static botIsHealthy():boolean{
-        return false;
+    private static async sendAliveMessage(): Promise<boolean> {
+        const response = await fetch(
+            `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: process.env.telegramChatId,
+                    text: "Started SuricataBot",
+                    parse_mode: 'Markdown',
+                }),
+                //@ts-expect-error it is nessesery becaurse TS doesnt know it
+                agent: agent,
+            }
+        );
+
+        if (!response.ok) {
+            return false;
+        }else {
+            return true;
+        }
     };
 
-    static async sendToTelegram(message: string): Promise<void> {
+    public static async sendToTelegram(message: string): Promise<void> {
         const response = await fetch(
             `https://api.telegram.org/bot${process.env.telegramToken}/sendMessage`,
             {

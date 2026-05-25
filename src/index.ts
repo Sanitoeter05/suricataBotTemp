@@ -7,11 +7,12 @@ import { LogLine } from './types/types';
 
 dotenv.config();
 
-function checkIfReady(): boolean {
+async function checkIfReady(): Promise<boolean> {
     return !!(
         process.env.fastFilePath &&
         process.env.telegramToken &&
-        process.env.telegramChatId
+        process.env.telegramChatId &&
+        (await Bot.botIsHealthy())
     );
 }
 
@@ -35,17 +36,18 @@ async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
         })
     );
 }
+(async () => {
+    if (await checkIfReady()) {
+        const filepath = process.env.fastFilePath as string;
+        initialFilePull(filepath);
+        watchFile(filepath);
 
-if (checkIfReady()) {
-    const filepath = process.env.fastFilePath as string;
-    initialFilePull(filepath);
-    watchFile(filepath);
-
-    logger.info(`Watching ${filepath} for changes...`);
-} else {
-    console.error('Please set the environment variables in .env file!');
-    process.exit(1);
-}
+        logger.info(`Watching ${filepath} for changes...`);
+    } else {
+        console.error('Please set the environment variables in .env file!');
+        process.exit(1);
+    }
+})();
 
 function watchFile(filepath: string) {
     let processing = false;
@@ -77,7 +79,7 @@ async function handleFileChange(
         logger.error(`Error processing log: ${error}`);
         console.error('Error processing log:', error);
     }
-    return [false,null];
+    return [false, null];
 }
 
 function initialFilePull(filepath: string) {
