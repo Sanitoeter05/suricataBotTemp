@@ -7,8 +7,12 @@ export default class Parser {
     private static readonly TIMESTAMP_REGEX = /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)/;
     private static readonly ADDRESSES_REGEX = /\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
     private static readonly LINE_SPLIT = /\r?\n/;
-    private static logCache = new Map<string, object>();
 
+    private static logCache = new Map<string, object>();
+    private static readonly CACHE_MAX_SIZE = 100; // Nach 100 Einträgen löschen
+    private static cacheEntryCount = 0;
+
+    
     static parseMessageTelegram(logLine: LogLine): string {
         if (!logLine) return '';
         return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
@@ -16,10 +20,18 @@ export default class Parser {
 
     static clearCache(): void {
         this.logCache.clear();
+        this.cacheEntryCount = 0;
     }
 
     static parseFastLog(logLines: string): LogLine[] {
         if (logLines.length === 0) return [];
+        
+        // Cache-Clearing: Größenlimit erreicht?
+        if (this.cacheEntryCount > this.CACHE_MAX_SIZE) {
+            this.clearCache();
+            logger.info('Log cache cleared (size limit reached)');
+        }
+        
         return logLines
             .split(this.LINE_SPLIT)
             .filter((line) => line.trim() !== '')

@@ -58,7 +58,7 @@ function watchFile(filepath: string) {
         if (eventType !== 'change') return;
         
         if(failCounter >= 5 && await machine.canConnectToTelegram()) {
-            setTimeout(() => {}, 500);
+            await new Promise(resolve => setTimeout(resolve, 500));
             failCounter= 0;
         }; 
 
