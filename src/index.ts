@@ -1,11 +1,12 @@
-import fs from 'fs';
+import {readFileSync, writeFile, appendFile, watch} from 'fs';
 import dotenv from 'dotenv';
 import logger from './modules/logging';
 import Bot from './modules/bot';
 import Parser from './modules/parser';
 import { LogLine } from './types/types';
 import machine from './modules/machine';
-dotenv.config();
+
+dotenv.config({quiet: true});
 
 async function checkIfReady(): Promise<boolean> {
     return !!(
@@ -17,15 +18,15 @@ async function checkIfReady(): Promise<boolean> {
 }
 
 async function FastLogProcess(filepath: string): Promise<void> {
-    const logContent = fs.readFileSync(filepath, 'utf-8');
-    fs.writeFileSync(filepath, '');
+    const logContent = readFileSync(filepath, 'utf-8');
+    writeFile(filepath, '', () => {});
     if (logContent.length === 0) return;
     const parsed = Parser.parseFastLog(logContent);
     try {
         await sendAsyncMessages(parsed);
     } catch (error) {
         logger.error(`Error sending messages: ${error}`);
-        fs.appendFileSync(`${__dirname}/failed_logs.txt`, logContent);
+        appendFile(`${__dirname}/logs/failed_logs.txt`, logContent,()=> {});
     }
 }
 
@@ -53,7 +54,7 @@ function watchFile(filepath: string) {
     let processing = false;
     let debounceTimer: NodeJS.Timeout | null = null;
     let failCounter = 0;
-    fs.watch(filepath, async (eventType) => {
+    watch(filepath, async (eventType) => {
         if (eventType !== 'change') return;
         
         if(failCounter >= 5 && await machine.canConnectToTelegram()) {

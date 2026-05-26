@@ -4,7 +4,6 @@ import dns from 'dns';
 export default class machine {
     public static hasInterface(): boolean {
         const interfaces = os.networkInterfaces();
-        console.log(interfaces);
         for (const name in interfaces) {
             for (const iface of interfaces[name]!) {
                 if (

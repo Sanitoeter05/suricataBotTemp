@@ -116,7 +116,8 @@ function runTests() {
     const testData = JSON.parse(
         readFileSync('./testData/payLoads.json', 'utf-8')
     );
-    const testResults = testParserProcess(
+    const testResults: { [key: string]: { [key: string]: TestResult } } = {};
+    testResults["parser"] = testParserProcess(
         testData.parser.parseString,
         testData.parser.errorString,
         testData.parser.check
