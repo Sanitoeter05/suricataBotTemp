@@ -4,27 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "watch": "tsc --watch",
-    "test": "node dist/index.js"
+    "start": "node dist/index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.4.2",
     "fs": "^0.0.1-security",
-    "jiti": "^2.7.0",
-    "pino": "^10.3.1",
-    "telegraf": "^4.16.3",
-    "typescript": "^6.0.2"
+    "pino": "^10.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^25.9.1",
-    "eslint": "^10.4.0",
-    "globals": "^17.6.0",
-    "typescript-eslint": "^8.59.4"
+    "@types/node": "^25.9.1"
   }
 }

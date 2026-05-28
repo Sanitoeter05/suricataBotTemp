@@ -1,0 +1,1 @@
+{"version":3,"file":"bot.d.ts","sourceRoot":"","sources":["../../src/modules/bot.ts"],"names":[],"mappings":"AAWA,MAAM,CAAC,OAAO,OAAO,GAAG;WAEA,YAAY,IAAI,OAAO,CAAC,OAAO,CAAC;mBAO/B,gBAAgB;WAuBjB,cAAc,CAAC,OAAO,EAAE,MAAM,GAAG,OAAO,CAAC,IAAI,CAAC;CAyBrE"}

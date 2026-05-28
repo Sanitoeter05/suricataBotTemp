@@ -1,0 +1,1 @@
+{"version":3,"file":"machine.d.ts","sourceRoot":"","sources":["../../src/modules/machine.ts"],"names":[],"mappings":"AAGA,MAAM,CAAC,OAAO,OAAO,OAAO;WACV,YAAY,IAAI,OAAO;IAerC,OAAO,CAAC,MAAM,CAAC,iBAAiB,CACvB;IACT,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,cAAc,CAAQ;WAEhC,oBAAoB,IAAI,OAAO,CAAC,OAAO,CAAC;CAsBzD"}

@@ -1,33 +1,8 @@
-export interface LogLine {
-    priority: number;
-    classification: string;
-    timestamp: string;
-    message: string;
-    protocol: string;
-    sourceAddr: string;
-    destAddr: string;
-    signatureId: string;
-    generatorId: string;
-    revision: string;
-}
-
-export type TestResult = [number, number, number, boolean];
-
-export interface unitTest {
-    run(rawLogLine: string | string[]): LogLine[];
-    validate(parsedData?: LogLine[], check?: LogLine): boolean;
-}
-
-export interface unitTestError {
-    run(errorLine: string): boolean;
-}
-
-export class unitTestsBuilder {
-    static measure(
-        task: unitTest,
-        rawLogLine: string | string[],
-        check?: LogLine
-    ): TestResult {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.unitTestsBuilderError = exports.unitTestsBuilder = void 0;
+class unitTestsBuilder {
+    static measure(task, rawLogLine, check) {
         const memStart = process.memoryUsage().heapUsed;
         const cpuStart = process.cpuUsage();
         const startTime = performance.now();
@@ -43,9 +18,9 @@ export class unitTestsBuilder {
         ];
     }
 }
-
-export class unitTestsBuilderError {
-    static measure(task: unitTestError, errorLine: string): TestResult {
+exports.unitTestsBuilder = unitTestsBuilder;
+class unitTestsBuilderError {
+    static measure(task, errorLine) {
         const startTime = performance.now();
         const memStart = process.memoryUsage().heapUsed;
         const cpuStart = process.cpuUsage();
@@ -61,3 +36,5 @@ export class unitTestsBuilderError {
         ];
     }
 }
+exports.unitTestsBuilderError = unitTestsBuilderError;
+//# sourceMappingURL=types.js.map
