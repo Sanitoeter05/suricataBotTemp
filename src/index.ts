@@ -46,7 +46,7 @@ async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
         logger.info(`Watching ${filepath} for changes...`);
     } else {
         console.error('Please set the environment variables in .env file!');
-        process.exit(1);
+        process.exitCode = 1;
     }
 })();
 
