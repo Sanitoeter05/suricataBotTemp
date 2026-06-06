@@ -16,7 +16,6 @@ async function checkIfReady(): Promise<boolean> {
         process.env.telegramChatId &&
         await Bot.botIsHealthy() && 
         await webhook.checkWebhookHealthProccess(process.env.webhookData ? JSON.parse(process.env.webhookData) : [])
-        
     );
 }
 
@@ -52,6 +51,7 @@ async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
         logger.info(`Watching ${filepath} for changes...`);
     } else {
         console.error('Please set the environment variables in .env file!');
+        console.error('Your healthcheck is failing or you have provided invalid webhook data');
         process.exitCode = 1;
     }
 })();
