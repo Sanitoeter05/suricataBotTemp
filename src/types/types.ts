@@ -61,3 +61,9 @@ export class unitTestsBuilderError {
         ];
     }
 }
+
+export interface webhookData {
+    webhookUrl: string;
+    webhookToken: string;
+    webhookPort: number;
+}
