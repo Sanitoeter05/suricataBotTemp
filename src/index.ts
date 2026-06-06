@@ -1,19 +1,21 @@
-import {readFileSync, writeFile, appendFile, watch} from 'fs';
+import { readFileSync, writeFile, appendFile, watch } from 'fs';
 import dotenv from 'dotenv';
 import logger from './modules/logging';
 import Bot from './modules/bot';
 import Parser from './modules/parser';
 import { LogLine } from './types/types';
 import machine from './modules/machine';
+import webhook from './modules/webhook';
 
-dotenv.config({quiet: true});
+dotenv.config({ quiet: true });
 
 async function checkIfReady(): Promise<boolean> {
     return !!(
         process.env.fastFilePath &&
         process.env.telegramToken &&
         process.env.telegramChatId &&
-        (await Bot.botIsHealthy())
+        await Bot.botIsHealthy()
+        
     );
 }
 
@@ -26,7 +28,7 @@ async function FastLogProcess(filepath: string): Promise<void> {
         await sendAsyncMessages(parsed);
     } catch (error) {
         logger.error(`Error sending messages: ${error}`);
-        appendFile(`${__dirname}/logs/failed_logs.txt`, logContent,()=> {});
+        appendFile(`${__dirname}/logs/failed_logs.txt`, logContent, () => {});
     }
 }
 
@@ -56,11 +58,11 @@ function watchFile(filepath: string) {
     let failCounter = 0;
     watch(filepath, async (eventType) => {
         if (eventType !== 'change') return;
-        
-        if(failCounter >= 5 && await machine.canConnectToTelegram()) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            failCounter= 0;
-        }; 
+
+        if (failCounter >= 5 && (await machine.canConnectToTelegram())) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            failCounter = 0;
+        }
 
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
