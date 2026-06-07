@@ -7,11 +7,14 @@ import {
 
 import testModifier from './testModifier';
 
+import { createServer, startServer, stopServer, getReceivedData, getReceivedDataByEndpoint, clearReceivedData } from './server';
+
+
 import {
     LogLine,
-    unitTestsBuilder,
+    unitTestParserBuilder,
     TestResult,
-    unitTestsBuilderError,
+    unitTestParserBuilderError,
 } from '../types/types';
 import parser from './../modules/parser';
 import { readFileSync } from 'fs';
@@ -28,34 +31,34 @@ class testParser {
         } = {};
 
         parser.clearCache();
-        parserValues['single'] = unitTestsBuilder.measure(
+        parserValues['single'] = unitTestParserBuilder.measure(
             new testSingleProf(),
             rawLogLine,
             check
         );
 
         parser.clearCache();
-        parserValues['multiple'] = unitTestsBuilder.measure(
+        parserValues['multiple'] = unitTestParserBuilder.measure(
             new testMultiProf(),
             testModifier.multiplyString(rawLogLine, 30),
             check
         );
 
         parser.clearCache();
-        parserValues['stress'] = unitTestsBuilder.measure(
+        parserValues['stress'] = unitTestParserBuilder.measure(
             new testMultiProf(),
             testModifier.multiplyString(rawLogLine, 1000),
             check
         );
 
         parser.clearCache();
-        parserValues['error'] = unitTestsBuilderError.measure(
+        parserValues['error'] = unitTestParserBuilderError.measure(
             new testErrorParse(),
             errorLine
         );
 
         parser.clearCache();
-        parserValues['null'] = unitTestsBuilderError.measure(
+        parserValues['null'] = unitTestParserBuilderError.measure(
             new testNullParse(),
             ''
         );
@@ -64,7 +67,6 @@ class testParser {
 }
 
 
-/* TODO need to fix these Unit tests
 class testWebhook {
     public static testWebhookProcess(
         rawLogLine: string,
@@ -76,40 +78,41 @@ class testWebhook {
         } = {};
 
         parser.clearCache();
-        parserValues['single'] = unitTestsBuilder.measure(
+        startServer(3000);
+        parserValues['single'] = unitTestParserBuilder.measure(
             new testSingleWebhook(),
             rawLogLine,
             check
         );
 
         parser.clearCache();
-        parserValues['multiple'] = unitTestsBuilder.measure(
+        parserValues['multiple'] = unitTestParserBuilder.measure(
             new testMultiWebhook(),
             testModifier.multiplyString(rawLogLine, 30),
             check
         );
 
         parser.clearCache();
-        parserValues['stress'] = unitTestsBuilder.measure(
+        parserValues['stress'] = unitTestParserBuilder.measure(
             new testMultiWebhook(),
             testModifier.multiplyString(rawLogLine, 1000),
             check
         );
 
         parser.clearCache();
-        parserValues['error'] = unitTestsBuilderError.measure(
+        parserValues['error'] = unitTestParserBuilderError.measure(
             new testErrorWebhook(),
             errorLine
         );
 
         parser.clearCache();
-        parserValues['null'] = unitTestsBuilderError.measure(
+        parserValues['null'] = unitTestParserBuilderError.measure(
             new testNullWebhook(),
             ''
         );
 
         parser.clearCache();
-        parserValues["interrupt"] = unitTestsBuilderError.measure(
+        parserValues["interrupt"] = unitTestParserBuilderError.measure(
             new testInterruptWebhook(),
             testModifier.multiplyString(rawLogLine, 1000)
         );
@@ -117,7 +120,6 @@ class testWebhook {
         return parserValues;
     }
 };
-*/
 function runTests() {
     const testData = JSON.parse(
         readFileSync('./testData/payLoads.json', 'utf-8')

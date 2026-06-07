@@ -1,14 +1,15 @@
 import parser from '../modules/parser';
 import {
     LogLine,
-    unitTestsBuilder,
-    unitTestsBuilderError,
+    unitTestParserBuilder,
+    unitTestParserBuilderError,
 } from '../types/types';
 import validation from './testValidation';
+import webhook from '../modules/webhook';
 
 
 
-export class testSingleProf implements unitTestsBuilder {
+export class testSingleProf implements unitTestParserBuilder {
     run(rawLogLine: string): LogLine[] {
         return parser.parseFastLog(rawLogLine);
     }
@@ -17,7 +18,7 @@ export class testSingleProf implements unitTestsBuilder {
     }
 }
 
-export class testMultiProf implements unitTestsBuilder {
+export class testMultiProf implements unitTestParserBuilder {
     run(rawLogLine: string): LogLine[] {
         return parser.parseFastLog(rawLogLine);
     }
@@ -26,7 +27,7 @@ export class testMultiProf implements unitTestsBuilder {
     }
 }
 
-export class testErrorParse implements unitTestsBuilderError {
+export class testErrorParse implements unitTestParserBuilderError {
     run(errorLine: string): boolean {
         let passed = false;
         try {
@@ -42,7 +43,7 @@ export class testErrorParse implements unitTestsBuilderError {
     }
 }
 
-export class testNullParse implements unitTestsBuilderError {
+export class testNullParse implements unitTestParserBuilderError {
     run(errorLine: string): boolean {
         return parser.parseFastLog(errorLine)[0] === undefined;
     }
@@ -50,9 +51,8 @@ export class testNullParse implements unitTestsBuilderError {
 
 // webhook classes
 
-export class testSingleWebhook implements unitTestsBuilder {
-    run(rawLogLine: string): LogLine[] {
-        return parser.parseFastLog(rawLogLine);
+export class testSingleWebhook implements unitTestParserBuilder {
+    run(parsedLogLine: LogLine): LogLine {
     }
     validate(parsedData: LogLine[], check?: LogLine): boolean {
         return validation.isEqualResults(parsedData[0], check!);

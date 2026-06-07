@@ -44,9 +44,9 @@ export default class Webhook {
         await Promise.all(sendPromises);
     };
 
-    private static async sendMessageToWebhook(logData: LogLine, webhookUrl: string, webhookPort: number, webhookToken: string): Promise<void> {
+    public static async sendMessageToWebhook(logData: LogLine, webhookUrl: string, webhookPort: number, webhookToken: string): Promise<number> {
         try {
-            await fetch(
+            const response = await fetch(
                 `https://${webhookUrl}:${webhookPort}/webhook`,
                 {
                     method: 'POST',
@@ -57,8 +57,10 @@ export default class Webhook {
                     }),
                 }
             );
+            return response.status;
         } catch (error) {
             console.error(error);
+            return 0;
         }
     }
 }

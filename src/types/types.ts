@@ -13,18 +13,19 @@ export interface LogLine {
 
 export type TestResult = [number, number, number, boolean];
 
-export interface unitTest {
+
+interface unitTestParser {
     run(rawLogLine: string | string[]): LogLine[];
     validate(parsedData?: LogLine[], check?: LogLine): boolean;
 }
 
-export interface unitTestError {
+interface unitTestParserError {
     run(errorLine: string): boolean;
 }
 
-export class unitTestsBuilder {
+export class unitTestParserBuilder {
     static measure(
-        task: unitTest,
+        task: unitTestParser,
         rawLogLine: string | string[],
         check?: LogLine
     ): TestResult {
@@ -44,8 +45,8 @@ export class unitTestsBuilder {
     }
 }
 
-export class unitTestsBuilderError {
-    static measure(task: unitTestError, errorLine: string): TestResult {
+export class unitTestParserBuilderError {
+    static measure(task: unitTestParserError, errorLine: string): TestResult {
         const startTime = performance.now();
         const memStart = process.memoryUsage().heapUsed;
         const cpuStart = process.cpuUsage();
@@ -67,3 +68,15 @@ export interface webhookData {
     webhookToken: string;
     webhookPort: number;
 }
+
+interface unitTestWebhook {
+    run(parsedLogLine: LogLine, webhookData: webhookData | webhookData[]): number;
+    validate(checkStat: number): boolean;
+};
+
+interface unitTestWebhookError {
+    run(errorLogLine: string, webhookData: webhookData | webhookData[]): number;
+    validate(checkStat: number): boolean;
+}
+
+//TODO need to start the unit testing interfaces for webhooks
