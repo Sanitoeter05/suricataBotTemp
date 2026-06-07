@@ -1,3 +1,3 @@
 [*] need to implement UNIT tests for every function
 [-] need to implement a way, to dynamicly create apparmor profiles for the clients
-[-] need to implement token checking for webhooks also need to test if it is eventuell needed to encrypt token veriifivattion throu AES
+[-] need to implement token checking for webhooks also need to test if it is eventuell needed to encrypt token veriifivattion throu AES THIS BEFORE RELEASE 1.1
