@@ -3,18 +3,24 @@ import {
     testMultiProf,
     testErrorParse,
     testNullParse,
+    testSingleWebhook,
+    testMultiWebhook,
+    testErrorWebhook,
+    testNullWebhook,
+    testInterruptWebhook
 } from './testClasses';
 
 import testModifier from './testModifier';
 
-import { createServer, startServer, stopServer, getReceivedData, getReceivedDataByEndpoint, clearReceivedData } from './server';
-
+import { createServer, startServer} from './server';
 
 import {
     LogLine,
     unitTestParserBuilder,
     TestResult,
     unitTestParserBuilderError,
+    unitTestWebhookBuilder,
+    unitTestWebhookBuilderError,
 } from '../types/types';
 import parser from './../modules/parser';
 import { readFileSync } from 'fs';
@@ -66,61 +72,93 @@ class testParser {
     }
 }
 
-
 class testWebhook {
-    public static testWebhookProcess(
-        rawLogLine: string,
-        errorLine: string,
-        check: LogLine
-    ): { [key: string]: TestResult } {
+    public static async testWebhookProcess(
+        parsedLogLine: LogLine,
+        errorLine: LogLine,
+        nullLine: LogLine
+    ): Promise<{ [key: string]: TestResult }> {
         const parserValues: {
             [key: string]: [number, number, number, boolean];
         } = {};
+        createServer();
 
-        parser.clearCache();
         startServer(3000);
-        parserValues['single'] = unitTestParserBuilder.measure(
+        parserValues['single'] = await unitTestWebhookBuilder.measure(
             new testSingleWebhook(),
-            rawLogLine,
-            check
+            parsedLogLine,
+            {
+                webhookUrl: 'localhost',
+                webhookPort: 3000,
+                webhookToken: 'testToken',
+            },
+            200
         );
 
-        parser.clearCache();
-        parserValues['multiple'] = unitTestParserBuilder.measure(
+        parserValues['multiple'] = await unitTestWebhookBuilder.measure(
             new testMultiWebhook(),
-            testModifier.multiplyString(rawLogLine, 30),
-            check
+            testModifier.multiplyArray(parsedLogLine, 10),
+            [
+                {
+                    webhookUrl: 'localhost',
+                    webhookPort: 3000,
+                    webhookToken: 'testToken',
+                },
+            ],
+            200
         );
 
-        parser.clearCache();
-        parserValues['stress'] = unitTestParserBuilder.measure(
+        parserValues['stress'] = await unitTestWebhookBuilder.measure(
             new testMultiWebhook(),
-            testModifier.multiplyString(rawLogLine, 1000),
-            check
+            testModifier.multiplyArray(parsedLogLine, 1000),
+            [
+                {
+                    webhookUrl: 'localhost',
+                    webhookPort: 3000,
+                    webhookToken: 'testToken',
+                },
+            ],
+            200
         );
 
-        parser.clearCache();
-        parserValues['error'] = unitTestParserBuilderError.measure(
+        parserValues['error'] = await unitTestWebhookBuilderError.measure(
             new testErrorWebhook(),
-            errorLine
+            errorLine,
+            {
+                webhookUrl: 'localhost',
+                webhookPort: 3000,
+                webhookToken: 'testToken',
+            },
+            1
         );
 
-        parser.clearCache();
-        parserValues['null'] = unitTestParserBuilderError.measure(
+        parserValues['null'] = await unitTestWebhookBuilderError.measure(
             new testNullWebhook(),
-            ''
+            nullLine,
+            {
+                webhookUrl: 'localhost',
+                webhookPort: 3000,
+                webhookToken: 'testToken',
+            },
+            0
         );
 
-        parser.clearCache();
-        parserValues["interrupt"] = unitTestParserBuilderError.measure(
+        parserValues["interrupt"] = await unitTestWebhookBuilderError.measure(
             new testInterruptWebhook(),
-            testModifier.multiplyString(rawLogLine, 1000)
+            parsedLogLine,
+            {
+                webhookUrl: 'localhost',
+                webhookPort: 3000,
+                webhookToken: 'testToken',
+            },
+            3
         );
 
         return parserValues;
     }
-};
-function runTests() {
+}
+
+async function runTests() {
     const testData = JSON.parse(
         readFileSync('./testData/payLoads.json', 'utf-8')
     );
@@ -129,6 +167,11 @@ function runTests() {
         testData.parser.parseString,
         testData.parser.errorString,
         testData.parser.check
+    );
+    testResults['webhook'] = await testWebhook.testWebhookProcess(
+        testData.webhook.parseString,
+        testData.webhook.errorString,
+        testData.webhook.nullString
     );
     console.log(testResults);
 }

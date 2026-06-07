@@ -3,11 +3,13 @@ import {
     LogLine,
     unitTestParserBuilder,
     unitTestParserBuilderError,
+    unitTestWebhookBuilder,
+    unitTestWebhookBuilderError,
+    webhookData,
 } from '../types/types';
 import validation from './testValidation';
 import webhook from '../modules/webhook';
-
-
+import { stopServer } from './server';
 
 export class testSingleProf implements unitTestParserBuilder {
     run(rawLogLine: string): LogLine[] {
@@ -51,10 +53,85 @@ export class testNullParse implements unitTestParserBuilderError {
 
 // webhook classes
 
-export class testSingleWebhook implements unitTestParserBuilder {
-    run(parsedLogLine: LogLine): LogLine {
+export class testSingleWebhook implements unitTestWebhookBuilder {
+    async run(
+        parsedLogLine: LogLine,
+        webhookData: webhookData
+    ): Promise<number> {
+        return webhook.sendMessageToWebhook(
+            parsedLogLine,
+            webhookData.webhookUrl,
+            webhookData.webhookPort,
+            webhookData.webhookToken
+        );
     }
-    validate(parsedData: LogLine[], check?: LogLine): boolean {
-        return validation.isEqualResults(parsedData[0], check!);
+    validate(result: number, check?: number): boolean {
+        return result === check;
+    }
+}
+
+export class testMultiWebhook implements unitTestWebhookBuilder {
+    async run(
+        parsedLogLine: LogLine[],
+        webhookData: webhookData[]
+    ): Promise<number[]> {
+        return webhook.sendMessageToWebhookProcess(parsedLogLine, webhookData);
+    }
+    validate(result: number[], check?: number): boolean {
+        return result.every((code) => code === check);
+    }
+}
+
+export class testErrorWebhook implements unitTestWebhookBuilderError {
+    async run(
+        misMatchErrorLogLine: LogLine,
+        webhookData: webhookData
+    ): Promise<number> {
+        return webhook.sendMessageToWebhook(
+            misMatchErrorLogLine,
+            webhookData.webhookUrl,
+            webhookData.webhookPort,
+            webhookData.webhookToken
+        );
+    }
+    validate(result: number, check?: number): boolean {
+        console.log(result, check);
+        return result === check;
+    }
+}
+
+export class testNullWebhook implements unitTestWebhookBuilderError {
+    async run(
+        nullLog: LogLine,
+        webhookData: webhookData
+    ): Promise<number> {
+        return webhook.sendMessageToWebhook(
+            nullLog,
+            webhookData.webhookUrl,
+            webhookData.webhookPort,
+            webhookData.webhookToken
+        );
+    }
+    validate(result: number, check?: number): boolean {
+        return result === check;
+    }
+};
+
+export class testInterruptWebhook implements unitTestWebhookBuilderError {
+    async run(
+        logData: LogLine,
+        webhookData: webhookData
+    ): Promise<number> {
+        stopServer();
+        return webhook.sendMessageToWebhook(
+            logData,
+            webhookData.webhookUrl,
+            webhookData.webhookPort,
+            webhookData.webhookToken
+        );
+    }
+    
+    validate(result: number, check?: number): boolean {
+        return result === check;
     }
 };

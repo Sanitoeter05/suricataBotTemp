@@ -29,5 +29,44 @@
             "destAddr": "2a00:1450:400e:080b:0000:0000:0000:200e:80"
         },
         "check": "200"
+    },
+    "webhook": {
+        "parsedLog": {
+            "timestamp": "05/23/2026-01:02:22.031371",
+            "generatorId": "1",
+            "signatureId": "3300109",
+            "revision": "5",
+            "message": "🐾 - 🚨 Curl User Agent 🌐",
+            "classification": "Potential Corporate Privacy Violation",
+            "priority": 1,
+            "protocol": "TCP",
+            "sourceAddr": "2a02:0908:2011:6840:b63e:5174:286c:4154:57326",
+            "destAddr": "2a00:1450:400e:080b:0000:0000:0000:200e:80"
+        },
+        "errorString": {
+            "timestamp": "/adadadas/sa",
+            "generatorId": "generatorId",
+            "signatureId": "12",
+            "revision": "1223212",
+            "message": "assas",
+            "classification": "dd",
+            "priority": 0,
+            "protocol": "11122",
+            "sourceAddr": "ass",
+            "destAddr": "ssa"
+        },
+        "nullString": {
+            "timestamp": "",
+            "generatorId": "",
+            "signatureId": "",
+            "revision": "",
+            "message": "",
+            "classification": "",
+            "priority": 0,
+            "protocol": "",
+            "sourceAddr": "",
+            "destAddr": ""
+        },
+        "checkStatus": 200
     }
 }

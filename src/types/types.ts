@@ -70,13 +70,57 @@ export interface webhookData {
 }
 
 interface unitTestWebhook {
-    run(parsedLogLine: LogLine, webhookData: webhookData | webhookData[]): number;
-    validate(checkStat: number): boolean;
+    run(parsedLogLine: LogLine | LogLine[], webhookData: webhookData | webhookData[]): Promise<number| number[]>;
+    validate(result: number | number[], checkStat: number): boolean;
 };
 
 interface unitTestWebhookError {
-    run(errorLogLine: string, webhookData: webhookData | webhookData[]): number;
-    validate(checkStat: number): boolean;
+    run(errorLogLine: LogLine, webhookData: webhookData | webhookData[]): Promise<number| number[]>;
+    validate(result: number | number[], checkStat: number): boolean;
 }
 
-//TODO need to start the unit testing interfaces for webhooks
+export class unitTestWebhookBuilder {
+    static async measure(
+        task: unitTestWebhook,
+        parsedLogLine: LogLine| LogLine[],
+        webhookData: webhookData | webhookData[],
+        checkStat: number
+    ): Promise<TestResult> {
+        const memStart = process.memoryUsage().heapUsed;
+        const cpuStart = process.cpuUsage();
+        const startTime = performance.now();
+        const result = await task.run(parsedLogLine, webhookData);
+        const endTime = performance.now();
+        const memEnd = process.memoryUsage().heapUsed;
+        const cpuEnd = process.cpuUsage(cpuStart);
+        return [
+            endTime - startTime,
+            (memEnd - memStart) / 1024,
+            (cpuEnd.user + cpuEnd.system) / 1000,
+            task.validate(result, checkStat),
+        ];
+    }
+}
+
+export class unitTestWebhookBuilderError {
+    static async measure(
+        task: unitTestWebhookError,
+        errorLogLine: LogLine,
+        webhookData: webhookData | webhookData[],
+        checkStat: number
+    ): Promise<TestResult> {
+        const memStart = process.memoryUsage().heapUsed;
+        const cpuStart = process.cpuUsage();
+        const startTime = performance.now();
+        const result = await task.run(errorLogLine, webhookData);
+        const endTime = performance.now();
+        const memEnd = process.memoryUsage().heapUsed;
+        const cpuEnd = process.cpuUsage(cpuStart);
+        return [
+            endTime - startTime,
+            (memEnd - memStart) / 1024,
+            (cpuEnd.user + cpuEnd.system) / 1000,
+            task.validate(result, checkStat),
+        ];
+    }
+};
