@@ -1,4 +1,13 @@
 import {
+    testSingleProf,
+    testMultiProf,
+    testErrorParse,
+    testNullParse,
+} from './testClasses';
+
+import testModifier from './testModifier';
+
+import {
     LogLine,
     unitTestsBuilder,
     TestResult,
@@ -7,117 +16,114 @@ import {
 import parser from './../modules/parser';
 import { readFileSync } from 'fs';
 
-//TODO need to add type for response
-function testParserProcess(
-    rawLogLine: string,
-    errorLine: string,
-    check: LogLine
-): { [key: string]: TestResult } {
-    const parserValues: { [key: string]: [number, number, number, boolean] } = {};
-    
-    parser.clearCache();
-    parserValues['single'] = unitTestsBuilder.measure(
-        new testSingleProf(),
-        rawLogLine,
-        check
-    );
-    
-    parser.clearCache();
-    parserValues['multiple'] = unitTestsBuilder.measure(
-        new testMultiProf(),
-        multiplyString(rawLogLine, 30),
-        check
-    );
-    
-    parser.clearCache();
-    parserValues['stress'] = unitTestsBuilder.measure(
-        new testMultiProf(),
-        multiplyString(rawLogLine, 1000),
-        check
-    );
-    
-    parser.clearCache();
-    parserValues['error'] = unitTestsBuilderError.measure(
-        new testErrorParse(),
-        errorLine
-    );
-    
-    parser.clearCache();
-    parserValues['null'] = unitTestsBuilderError.measure(
-        new testNullParse(),
-        ''
-    );
-    return parserValues;
-}
+class testParser {
+    //TODO need to add type for response
+    public static testParserProcess(
+        rawLogLine: string,
+        errorLine: string,
+        check: LogLine
+    ): { [key: string]: TestResult } {
+        const parserValues: {
+            [key: string]: [number, number, number, boolean];
+        } = {};
 
-class testSingleProf implements unitTestsBuilder {
-    run(rawLogLine: string): LogLine[] {
-        return parser.parseFastLog(rawLogLine);
-    }
-    validate(parsedData: LogLine[], check?: LogLine): boolean {
-        return isEqualResults(parsedData[0], check!);
+        parser.clearCache();
+        parserValues['single'] = unitTestsBuilder.measure(
+            new testSingleProf(),
+            rawLogLine,
+            check
+        );
+
+        parser.clearCache();
+        parserValues['multiple'] = unitTestsBuilder.measure(
+            new testMultiProf(),
+            testModifier.multiplyString(rawLogLine, 30),
+            check
+        );
+
+        parser.clearCache();
+        parserValues['stress'] = unitTestsBuilder.measure(
+            new testMultiProf(),
+            testModifier.multiplyString(rawLogLine, 1000),
+            check
+        );
+
+        parser.clearCache();
+        parserValues['error'] = unitTestsBuilderError.measure(
+            new testErrorParse(),
+            errorLine
+        );
+
+        parser.clearCache();
+        parserValues['null'] = unitTestsBuilderError.measure(
+            new testNullParse(),
+            ''
+        );
+        return parserValues;
     }
 }
 
-class testMultiProf implements unitTestsBuilder {
-    run(rawLogLine: string): LogLine[] {
-        return parser.parseFastLog(rawLogLine);
+
+/* TODO need to fix these Unit tests
+class testWebhook {
+    public static testWebhookProcess(
+        rawLogLine: string,
+        errorLine: string,
+        check: LogLine
+    ): { [key: string]: TestResult } {
+        const parserValues: {
+            [key: string]: [number, number, number, boolean];
+        } = {};
+
+        parser.clearCache();
+        parserValues['single'] = unitTestsBuilder.measure(
+            new testSingleWebhook(),
+            rawLogLine,
+            check
+        );
+
+        parser.clearCache();
+        parserValues['multiple'] = unitTestsBuilder.measure(
+            new testMultiWebhook(),
+            testModifier.multiplyString(rawLogLine, 30),
+            check
+        );
+
+        parser.clearCache();
+        parserValues['stress'] = unitTestsBuilder.measure(
+            new testMultiWebhook(),
+            testModifier.multiplyString(rawLogLine, 1000),
+            check
+        );
+
+        parser.clearCache();
+        parserValues['error'] = unitTestsBuilderError.measure(
+            new testErrorWebhook(),
+            errorLine
+        );
+
+        parser.clearCache();
+        parserValues['null'] = unitTestsBuilderError.measure(
+            new testNullWebhook(),
+            ''
+        );
+
+        parser.clearCache();
+        parserValues["interrupt"] = unitTestsBuilderError.measure(
+            new testInterruptWebhook(),
+            testModifier.multiplyString(rawLogLine, 1000)
+        );
+
+        return parserValues;
     }
-    validate(parsedData: LogLine[], check?: LogLine): boolean {
-        return validateParserData(parsedData, check!);
-    }
-}
-
-class testErrorParse implements unitTestsBuilderError {
-    run(errorLine: string): boolean {
-        let passed = false;
-        try {
-            parser.parseFastLog(errorLine);
-        } catch (error) {
-            //@ts-expect-error it is nessesery becaurse TS doesnt know it
-
-            if (error.message === 'Failed to parse log line') {
-                passed = true;
-            }
-        }
-        return passed;
-    }
-}
-
-class testNullParse implements unitTestsBuilderError {
-    run(errorLine: string): boolean {
-        return parser.parseFastLog(errorLine)[0] === undefined;
-    }
-}
-
-function validateParserData(parsed: LogLine[], check: LogLine) {
-    let passed = true;
-    parsed.map((logLine) => {
-        if (!isEqualResults(logLine, check)) {
-            passed = false;
-        }
-    });
-    return passed;
-}
-
-function multiplyString(str: string, times: number): string {
-    let result = '';
-    for (let i = 0; i < times; i++) {
-        result += str + '\n';
-    }
-    return result;
-}
-
-function isEqualResults(result: LogLine, check: LogLine): boolean {
-    return JSON.stringify(check) === JSON.stringify(result);
-}
-
+};
+*/
 function runTests() {
     const testData = JSON.parse(
         readFileSync('./testData/payLoads.json', 'utf-8')
     );
     const testResults: { [key: string]: { [key: string]: TestResult } } = {};
-    testResults["parser"] = testParserProcess(
+    testResults['parser'] = testParser.testParserProcess(
         testData.parser.parseString,
         testData.parser.errorString,
         testData.parser.check
