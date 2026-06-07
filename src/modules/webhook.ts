@@ -1,6 +1,6 @@
 import { LogLine, webhookData } from '../types/types';
-
 export default class Webhook {
+
     public static async checkWebhookHealthProccess(webhookData:webhookData[]): Promise<boolean> {
         if(webhookData.length === 0) return true; // If no webhook data is provided, consider it healthy by default
         const healthChecks = webhookData.map(data => 
