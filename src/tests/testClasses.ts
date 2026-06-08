@@ -66,6 +66,7 @@ export class testSingleWebhook implements unitTestWebhookBuilder {
         );
     }
     validate(result: number, check?: number): boolean {
+        console.log(result, check);
         return result === check;
     }
 }
@@ -78,6 +79,7 @@ export class testMultiWebhook implements unitTestWebhookBuilder {
         return webhook.sendMessageToWebhookProcess(parsedLogLine, webhookData);
     }
     validate(result: number[], check?: number): boolean {
+        console.log(result, check);
         return result.every((code) => code === check);
     }
 }
@@ -113,18 +115,19 @@ export class testNullWebhook implements unitTestWebhookBuilderError {
         );
     }
     validate(result: number, check?: number): boolean {
+        console.log(result, check);
         return result === check;
     }
 };
 
 export class testInterruptWebhook implements unitTestWebhookBuilderError {
     async run(
-        logData: LogLine,
+        parsedLog: LogLine,
         webhookData: webhookData
     ): Promise<number> {
         stopServer();
         return webhook.sendMessageToWebhook(
-            logData,
+            parsedLog,
             webhookData.webhookUrl,
             webhookData.webhookPort,
             webhookData.webhookToken
@@ -132,6 +135,7 @@ export class testInterruptWebhook implements unitTestWebhookBuilderError {
     }
     
     validate(result: number, check?: number): boolean {
+        console.log(result, check);
         return result === check;
     }
 };

@@ -4,7 +4,8 @@ import { LogLine } from '../types/types';
 export default class Parser {
     private static readonly LOG_REGEX =
         /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)\s+\[\*\*\]\s+\[(\d+):(\d+):(\d+)\]\s+(.+?)\s+\[\*\*\]\s+\[Classification:\s+(.+?)\]\s+\[Priority:\s+(\d+)\]\s+\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
-    private static readonly TIMESTAMP_REGEX = /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)/;
+    private static readonly TIMESTAMP_REGEX =
+        /^(\d{2}\/\d{2}\/\d{4}-\d{2}:\d{2}:\d{2}\.\d+)/;
     private static readonly ADDRESSES_REGEX = /\{(.+?)\}\s+(.+?)\s+->\s+(.+)$/;
     private static readonly LINE_SPLIT = /\r?\n/;
 
@@ -12,7 +13,6 @@ export default class Parser {
     private static readonly CACHE_MAX_SIZE = 100; // Nach 100 Einträgen löschen
     private static cacheEntryCount = 0;
 
-    
     static parseMessageTelegram(logLine: LogLine): string {
         if (!logLine) return '';
         return `*New security alert with priority: ${logLine['priority']}*\n\n*Classification: ${logLine['classification']} Time Stamp: ${logLine['timestamp']}*\nAlert message: ${logLine['message'].replace('_', '')}\n\n${logLine['protocol']}: ${logLine['sourceAddr']} -> ${logLine['destAddr']}\n\nSID: ${logLine['signatureId']}`;
@@ -25,26 +25,28 @@ export default class Parser {
 
     static parseFastLog(logLines: string): LogLine[] {
         if (logLines.length === 0) return [];
-        
+
         // Cache-Clearing: Größenlimit erreicht?
         if (this.cacheEntryCount > this.CACHE_MAX_SIZE) {
             this.clearCache();
             logger.info('Log cache cleared (size limit reached)');
         }
-        
+
         return logLines
             .split(this.LINE_SPLIT)
             .filter((line) => line.trim() !== '')
             .map((line) => {
                 // Cache-Key: Index 28-46 (generatorId:signatureId:revision)
                 const cacheKey = line.substring(28, 46);
-                
+
                 // Cache-Hit: gecachtes Objekt + frische Daten (timestamp, IPs)
                 if (this.logCache.has(cacheKey)) {
-                    const cached = this.logCache.get(cacheKey) as { [key: string]: string | number  };
+                    const cached = this.logCache.get(cacheKey) as {
+                        [key: string]: string | number;
+                    };
                     const timestampMatch = line.match(this.TIMESTAMP_REGEX);
                     const addressesMatch = line.match(this.ADDRESSES_REGEX);
-                    
+
                     if (timestampMatch && addressesMatch) {
                         return {
                             timestamp: timestampMatch[1],
@@ -60,7 +62,7 @@ export default class Parser {
                         };
                     }
                 }
-                
+
                 // Cache-Miss: vollständig parsen
                 return this.parseLogLine(line);
             })
@@ -101,7 +103,12 @@ export default class Parser {
             priority: priority,
         };
         this.logCache.set(cacheKey, cachedObject);
-        
+
         return logObject;
     }
+
+    public static isValidTimestamp = (timestamp: string): boolean => {
+        if (!timestamp || timestamp === '') return false;
+        return this.TIMESTAMP_REGEX.test(timestamp);
+    };
 }

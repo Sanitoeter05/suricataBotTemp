@@ -43,7 +43,7 @@
             "sourceAddr": "2a02:0908:2011:6840:b63e:5174:286c:4154:57326",
             "destAddr": "2a00:1450:400e:080b:0000:0000:0000:200e:80"
         },
-        "errorString": {
+        "errorLog": {
             "timestamp": "/adadadas/sa",
             "generatorId": "generatorId",
             "signatureId": "12",
@@ -55,7 +55,7 @@
             "sourceAddr": "ass",
             "destAddr": "ssa"
         },
-        "nullString": {
+        "nullLog": {
             "timestamp": "",
             "generatorId": "",
             "signatureId": "",

@@ -169,9 +169,9 @@ async function runTests() {
         testData.parser.check
     );
     testResults['webhook'] = await testWebhook.testWebhookProcess(
-        testData.webhook.parseString,
-        testData.webhook.errorString,
-        testData.webhook.nullString
+        testData.webhook.parsedLog,
+        testData.webhook.errorLog,
+        testData.webhook.nullLog
     );
     console.log(testResults);
 }
