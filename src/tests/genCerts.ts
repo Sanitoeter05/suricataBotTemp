@@ -1,6 +1,6 @@
 import fs from 'fs';
-import path from'path';
-import { exec } from'child_process';
+import path from 'path';
+import { exec } from 'child_process';
 
 // Using PowerShell to generate self-signed cert
 const certDir = path.join(__dirname, 'certs');

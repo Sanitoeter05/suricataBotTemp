@@ -103,10 +103,7 @@ export class testErrorWebhook implements unitTestWebhookBuilderError {
 }
 
 export class testNullWebhook implements unitTestWebhookBuilderError {
-    async run(
-        nullLog: LogLine,
-        webhookData: webhookData
-    ): Promise<number> {
+    async run(nullLog: LogLine, webhookData: webhookData): Promise<number> {
         return webhook.sendMessageToWebhook(
             nullLog,
             webhookData.webhookUrl,
@@ -118,13 +115,10 @@ export class testNullWebhook implements unitTestWebhookBuilderError {
         console.log(result, check);
         return result === check;
     }
-};
+}
 
 export class testInterruptWebhook implements unitTestWebhookBuilderError {
-    async run(
-        parsedLog: LogLine,
-        webhookData: webhookData
-    ): Promise<number> {
+    async run(parsedLog: LogLine, webhookData: webhookData): Promise<number> {
         stopServer();
         return webhook.sendMessageToWebhook(
             parsedLog,
@@ -133,9 +127,9 @@ export class testInterruptWebhook implements unitTestWebhookBuilderError {
             webhookData.webhookToken
         );
     }
-    
+
     validate(result: number, check?: number): boolean {
         console.log(result, check);
         return result === check;
     }
-};
+}

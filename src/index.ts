@@ -14,8 +14,10 @@ async function checkIfReady(): Promise<boolean> {
         process.env.fastFilePath &&
         process.env.telegramToken &&
         process.env.telegramChatId &&
-        await Bot.botIsHealthy() && 
-        await webhook.checkWebhookHealthProccess(process.env.webhookData ? JSON.parse(process.env.webhookData) : [])
+        (await Bot.botIsHealthy()) &&
+        (await webhook.checkWebhookHealthProccess(
+            process.env.webhookData ? JSON.parse(process.env.webhookData) : []
+        ))
     );
 }
 
@@ -34,11 +36,14 @@ async function FastLogProcess(filepath: string): Promise<void> {
 
 async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
     await Promise.all(
-        parsedMessageArray.map( async (logLine) => {
+        parsedMessageArray.map(async (logLine) => {
             await Bot.sendToTelegram(Parser.parseMessageTelegram(logLine));
-            if(process.env.webhookData) {
-                await webhook.sendMessageToWebhookProcess(logLine, JSON.parse(process.env.webhookData));
-            };
+            if (process.env.webhookData) {
+                await webhook.sendMessageToWebhookProcess(
+                    logLine,
+                    JSON.parse(process.env.webhookData)
+                );
+            }
         })
     );
 }
@@ -51,7 +56,9 @@ async function sendAsyncMessages(parsedMessageArray: LogLine[]) {
         logger.info(`Watching ${filepath} for changes...`);
     } else {
         console.error('Please set the environment variables in .env file!');
-        console.error('Your healthcheck is failing or you have provided invalid webhook data');
+        console.error(
+            'Your healthcheck is failing or you have provided invalid webhook data'
+        );
         process.exitCode = 1;
     }
 })();

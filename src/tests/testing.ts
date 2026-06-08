@@ -7,12 +7,12 @@ import {
     testMultiWebhook,
     testErrorWebhook,
     testNullWebhook,
-    testInterruptWebhook
+    testInterruptWebhook,
 } from './testClasses';
 
 import testModifier from './testModifier';
 
-import { createServer, startServer} from './server';
+import { createServer, startServer } from './server';
 
 import {
     LogLine,
@@ -143,7 +143,7 @@ class testWebhook {
             0
         );
 
-        parserValues["interrupt"] = await unitTestWebhookBuilderError.measure(
+        parserValues['interrupt'] = await unitTestWebhookBuilderError.measure(
             new testInterruptWebhook(),
             parsedLogLine,
             {

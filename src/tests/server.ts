@@ -23,28 +23,28 @@ export function createServer(config: ServerConfig = {}) {
     const app = express();
     app.use(express.json());
 
-    app.post("/webhook/health", (req, res) => {
+    app.post('/webhook/health', (req, res) => {
         receivedData.push({
             endpoint: '/webhook/health',
             data: req.body,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         });
-        res.status(200).send("Webhook received");
+        res.status(200).send('Webhook received');
     });
 
-    app.post("/webhook", (req, res) => {
+    app.post('/webhook', (req, res) => {
         receivedData.push({
             endpoint: '/webhook',
             data: req.body,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         });
-        res.status(200).send("Webhook received");
+        res.status(200).send('Webhook received');
     });
 
     if (useHTTPS) {
         const options = {
             pfx: fs.readFileSync(path.join(__dirname, '../../certs/cert.pfx')),
-            passphrase: 'password'
+            passphrase: 'password',
         };
         server = https.createServer(options, app);
         console.log(`🔒 HTTPS Server created on port ${port}`);
@@ -62,14 +62,15 @@ export function startServer(port = 3000): Promise<void> {
             reject(new Error('Server not created. Call createServer() first.'));
             return;
         }
-        
-        server.listen(port, () => {
-            console.log(`✅ Server is running on port ${port}`);
-            resolve();
-        }).on('error', reject);
+
+        server
+            .listen(port, () => {
+                console.log(`✅ Server is running on port ${port}`);
+                resolve();
+            })
+            .on('error', reject);
     });
 }
-
 
 export function stopServer(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -96,7 +97,7 @@ export function getReceivedData() {
 }
 
 export function getReceivedDataByEndpoint(endpoint: string) {
-    return receivedData.filter(d => d.endpoint === endpoint);
+    return receivedData.filter((d) => d.endpoint === endpoint);
 }
 
 export function clearReceivedData() {

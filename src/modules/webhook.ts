@@ -109,27 +109,34 @@ export default class Webhook {
     ): Promise<number> {
         // Helper function to validate timestamp format
         // Format: MM/DD/YYYY-HH:MM:SS.microseconds
-        
 
         if (
             !logData ||
-            ((logData.message === '' || logData.message === null) ||
-                (logData.classification === '' ||
-                    logData.classification === null) ||
-                (logData.timestamp === '' || logData.timestamp === null) ||
-                (logData.protocol === '' || logData.protocol === null) ||
-                (logData.sourceAddr === '' || logData.sourceAddr === null) ||
-                (logData.destAddr === '' || logData.destAddr === null) ||
-                (logData.signatureId === '' || logData.signatureId === null) ||
-                (logData.generatorId === '' || logData.generatorId === null) ||
-                (logData.revision === '' || logData.revision === null))
+            logData.message === '' ||
+            logData.message === null ||
+            logData.classification === '' ||
+            logData.classification === null ||
+            logData.timestamp === '' ||
+            logData.timestamp === null ||
+            logData.protocol === '' ||
+            logData.protocol === null ||
+            logData.sourceAddr === '' ||
+            logData.sourceAddr === null ||
+            logData.destAddr === '' ||
+            logData.destAddr === null ||
+            logData.signatureId === '' ||
+            logData.signatureId === null ||
+            logData.generatorId === '' ||
+            logData.generatorId === null ||
+            logData.revision === '' ||
+            logData.revision === null
         ) {
             return 0;
         }
 
         // Validate timestamp format before parsing - filter out any invalid timestamps
         if (!parser.isValidTimestamp(logData.timestamp)) {
-            console.log("invalid timestamp format:", logData.timestamp);
+            console.log('invalid timestamp format:', logData.timestamp);
             return 1;
         }
         try {
@@ -147,15 +154,20 @@ export default class Webhook {
             return response.status;
         } catch (error) {
             const cause =
-            error instanceof Error ? (error.cause as NodeJS.ErrnoException) : null;
+                error instanceof Error
+                    ? (error.cause as NodeJS.ErrnoException)
+                    : null;
             const errorCode = cause?.code;
-            console.log(errorCode)
-            if (errorCode === 'ECONNRESET'||errorCode === 'ECONNREFUSED') {
-                appendFile(`${__dirname}/logs/failed_logs.txt`, JSON.stringify(logData) + '\n', () => {});                
+            if (errorCode === 'ECONNRESET' || errorCode === 'ECONNREFUSED') {
+                appendFile(
+                    `${__dirname}/logs/failed_logs.txt`,
+                    JSON.stringify(logData) + '\n',
+                    () => {}
+                );
                 return 3;
-            }else {
+            } else {
                 return 4;
-            };
+            }
         }
     }
 }

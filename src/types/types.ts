@@ -13,7 +13,6 @@ export interface LogLine {
 
 export type TestResult = [number, number, number, boolean];
 
-
 interface unitTestParser {
     run(rawLogLine: string | string[]): LogLine[];
     validate(parsedData?: LogLine[], check?: LogLine): boolean;
@@ -70,19 +69,25 @@ export interface webhookData {
 }
 
 interface unitTestWebhook {
-    run(parsedLogLine: LogLine | LogLine[], webhookData: webhookData | webhookData[]): Promise<number| number[]>;
+    run(
+        parsedLogLine: LogLine | LogLine[],
+        webhookData: webhookData | webhookData[]
+    ): Promise<number | number[]>;
     validate(result: number | number[], checkStat: number): boolean;
-};
+}
 
 interface unitTestWebhookError {
-    run(errorLogLine: LogLine, webhookData: webhookData | webhookData[]): Promise<number| number[]>;
+    run(
+        errorLogLine: LogLine,
+        webhookData: webhookData | webhookData[]
+    ): Promise<number | number[]>;
     validate(result: number | number[], checkStat: number): boolean;
 }
 
 export class unitTestWebhookBuilder {
     static async measure(
         task: unitTestWebhook,
-        parsedLogLine: LogLine| LogLine[],
+        parsedLogLine: LogLine | LogLine[],
         webhookData: webhookData | webhookData[],
         checkStat: number
     ): Promise<TestResult> {
@@ -123,4 +128,4 @@ export class unitTestWebhookBuilderError {
             task.validate(result, checkStat),
         ];
     }
-};
+}

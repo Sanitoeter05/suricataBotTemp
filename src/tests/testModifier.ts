@@ -1,4 +1,4 @@
-import { LogLine } from "../types/types";
+import { LogLine } from '../types/types';
 
 export default class testModifier {
     public static multiplyString(str: string, times: number): string {
@@ -8,7 +8,7 @@ export default class testModifier {
         }
         return result;
     }
-    
+
     public static multiplyArray(logLine: LogLine, times: number): LogLine[] {
         const result: LogLine[] = [];
         for (let i = 0; i < times; i++) {
@@ -16,4 +16,4 @@ export default class testModifier {
         }
         return result;
     }
-};
+}
