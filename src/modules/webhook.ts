@@ -1,5 +1,6 @@
 import { LogLine, webhookData } from '../types/types';
 import parser from './parser';
+import { appendFile } from 'fs';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable TLS certificate validation for development purposes
 
 export default class Webhook {
@@ -150,6 +151,7 @@ export default class Webhook {
             const errorCode = cause?.code;
             console.log(errorCode)
             if (errorCode === 'ECONNRESET'||errorCode === 'ECONNREFUSED') {
+                appendFile(`${__dirname}/logs/failed_logs.txt`, JSON.stringify(logData) + '\n', () => {});                
                 return 3;
             }else {
                 return 4;
