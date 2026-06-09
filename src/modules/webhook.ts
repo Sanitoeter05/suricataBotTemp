@@ -1,7 +1,8 @@
 import { LogLine, webhookData } from '../types/types';
 import parser from './parser';
 import { appendFile } from 'fs';
-import https from 'https';
+import Auth from './auth';
+import {publicIpv4} from "public-ip"
 
 export default class Webhook {
     private static readonly agent = new https.Agent({
@@ -180,5 +181,29 @@ export default class Webhook {
                 return 4;
             }
         }
+    }
+    public static  async getAuthtoken(firstTime:boolean = false,webhookData: webhookData):number{
+        let urlAdd = "";
+        if(firstTime && ! Auth.isAuthenticated){
+            urlAdd = "/firstAuth";
+        };
+        const response = await fetch(
+            `https://${webhookData.webhookUrl}:${webhookData.webhookPort}/webhook${urlAdd}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: Auth.genSelfMadeToken(await publicIpv4())
+                }),
+            }
+        );
+        
+        if (!response.body||response.body.token || !response.body.expires){
+            return 1;
+        }else{
+            Auth.isAuthenticated = true; 
+            Auth.setBotToken(response.body.token);
+            Auth.startTokenExpiry(response.body.expires);
+        };
     }
 }

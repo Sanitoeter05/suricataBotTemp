@@ -18,6 +18,7 @@
     "fs": "^0.0.1-security",
     "jiti": "^2.7.0",
     "pino": "^10.3.1",
+    "public-ip": "^8.0.0",
     "telegraf": "^4.16.3",
     "typescript": "^6.0.2"
   },
