@@ -1,9 +1,16 @@
 import { LogLine, webhookData } from '../types/types';
 import parser from './parser';
 import { appendFile } from 'fs';
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable TLS certificate validation for development purposes
+import https from 'https';
 
 export default class Webhook {
+    private static readonly agent = new https.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 30000,
+        maxSockets: 30,
+        maxFreeSockets: 10,
+    });
+
     public static async checkWebhookHealthProccess(
         webhookData: webhookData[]
     ): Promise<boolean> {
@@ -31,7 +38,9 @@ export default class Webhook {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: webhookToken }),
-                }
+                    //@ts-expect-error it is necessary because TS doesn't know it
+                    agent: Webhook.agent,
+                },
             );
 
             if (!response.ok || response.body === null) {
@@ -149,6 +158,8 @@ export default class Webhook {
                         token: webhookToken,
                         data: logData,
                     }),
+                    //@ts-expect-error it is necessary because TS doesn't know it
+                    agent: Webhook.agent,
                 }
             );
             return response.status;

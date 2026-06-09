@@ -6,6 +6,7 @@ import Parser from './modules/parser';
 import { LogLine } from './types/types';
 import machine from './modules/machine';
 import webhook from './modules/webhook';
+import Validation from './modules/validation';
 
 dotenv.config({ quiet: true });
 
@@ -15,7 +16,11 @@ async function checkIfReady(): Promise<boolean> {
         process.env.telegramToken &&
         process.env.telegramChatId &&
         (await Bot.botIsHealthy()) &&
-        (await webhook.checkWebhookHealthProccess(
+
+        (Validation.validateWebhookUrl(
+            process.env.webhookUrl as string,
+            parseInt(process.env.webhookPort as string)
+        ) && await webhook.checkWebhookHealthProccess(
             process.env.webhookData ? JSON.parse(process.env.webhookData) : []
         ))
     );
