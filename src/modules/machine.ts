@@ -1,7 +1,35 @@
 import os from 'os';
 import dns from 'dns';
+import {ipInterfaces} from "../types/types"
 
 export default class machine {
+public static getLocalIP() {
+  const interfaces = os.networkInterfaces();
+
+  const priority:ipInterfaces = {
+    win32:  ['Ethernet', 'Wi-Fi'],
+    darwin: ['en0', 'en1', 'en2'],
+    linux:  ['eth0', 'eth1', 'wlan0'],
+  };
+  const names = priority.linux;
+
+  // Check priority interfaces first
+  for (const name of names) {
+    const iface = (interfaces[name] || [])
+      .find(i => i.family === 'IPv4' && !i.internal);
+    if (iface) return iface.address;
+  }
+
+  // Fallback: any interface excluding virtual adapters
+  for (const [name, addrs] of Object.entries(interfaces)) {
+    if (/VMware|VirtualBox|Hyper-V/i.test(name)) continue;
+    const iface = addrs!.find(i => i.family === 'IPv4' && !i.internal);
+    if (iface) return iface.address;
+  }
+
+  return null;
+}
+
     public static hasInterface(): boolean {
         const interfaces = os.networkInterfaces();
         for (const name in interfaces) {
@@ -43,4 +71,20 @@ export default class machine {
             });
         });
     }
+    public static async getIp(isInternal:boolean=true):Promise<string>{
+
+        if (isInternal){
+            const localIp = this.getLocalIP()
+            if(localIp){
+                return localIp;
+            }
+        }else {
+            const {publicIpv4}  = await import('public-ip');
+            const pubIp = await publicIpv4();
+            if(pubIp){
+                return pubIp;
+            }
+        };
+        return "null";
+    };
 }

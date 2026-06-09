@@ -13,6 +13,12 @@ export interface LogLine {
 
 export type authResponse = {token: string; expires: number}; 
 
+export type ipInterfaces ={
+    "win32": string[];
+    "darwin": string[];
+    "linux": string[]; 
+};
+
 export type TestResult = [number, number, number, boolean];
 
 interface unitTestParser {

@@ -7,6 +7,7 @@ import { LogLine } from './types/types';
 import machine from './modules/machine';
 import webhook from './modules/webhook';
 import Validation from './modules/validation';
+import Auth from './modules/auth';
 
 dotenv.config({ quiet: true });
 
@@ -16,7 +17,7 @@ async function checkIfReady(): Promise<boolean> {
         process.env.telegramToken &&
         process.env.telegramChatId &&
         (await Bot.botIsHealthy()) &&
-
+        Auth.genSelfMadeToken(await machine.getIp()) &&
         (Validation.validateWebhookUrl(
             process.env.webhookUrl as string,
             parseInt(process.env.webhookPort as string)
