@@ -62,7 +62,6 @@ export class testSingleWebhook implements unitTestWebhookBuilder {
             parsedLogLine,
             webhookData.webhookUrl,
             webhookData.webhookPort,
-            webhookData.webhookToken
         );
     }
     validate(result: number, check?: number): boolean {
@@ -93,7 +92,6 @@ export class testErrorWebhook implements unitTestWebhookBuilderError {
             misMatchErrorLogLine,
             webhookData.webhookUrl,
             webhookData.webhookPort,
-            webhookData.webhookToken
         );
     }
     validate(result: number, check?: number): boolean {
@@ -108,7 +106,6 @@ export class testNullWebhook implements unitTestWebhookBuilderError {
             nullLog,
             webhookData.webhookUrl,
             webhookData.webhookPort,
-            webhookData.webhookToken
         );
     }
     validate(result: number, check?: number): boolean {
@@ -124,7 +121,6 @@ export class testInterruptWebhook implements unitTestWebhookBuilderError {
             parsedLog,
             webhookData.webhookUrl,
             webhookData.webhookPort,
-            webhookData.webhookToken
         );
     }
 

@@ -1,8 +1,8 @@
-import { LogLine, webhookData } from '../types/types';
+import { authResponse, LogLine, webhookData } from '../types/types';
 import parser from './parser';
 import { appendFile } from 'fs';
 import Auth from './auth';
-import {publicIpv4} from "public-ip"
+import https from 'https';
 
 export default class Webhook {
     private static readonly agent = new https.Agent({
@@ -19,7 +19,6 @@ export default class Webhook {
         const healthChecks = webhookData.map((data) =>
             Webhook.checkWebhookHealth(
                 data.webhookUrl,
-                data.webhookToken,
                 data.webhookPort
             )
         );
@@ -29,7 +28,6 @@ export default class Webhook {
 
     private static async checkWebhookHealth(
         webhookUrl: string,
-        webhookToken: string,
         webhookPort: number
     ): Promise<boolean> {
         try {
@@ -38,7 +36,7 @@ export default class Webhook {
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: webhookToken }),
+                    body: JSON.stringify({ token: Auth.botToken }),
                     //@ts-expect-error it is necessary because TS doesn't know it
                     agent: Webhook.agent,
                 },
@@ -75,8 +73,7 @@ export default class Webhook {
                             Webhook.sendMessageToWebhook(
                                 log,
                                 data.webhookUrl,
-                                data.webhookPort,
-                                data.webhookToken
+                                data.webhookPort
                             )
                         );
                         const results = await Promise.all(logPromises);
@@ -90,8 +87,7 @@ export default class Webhook {
                         Webhook.sendMessageToWebhook(
                             log,
                             data.webhookUrl,
-                            data.webhookPort,
-                            data.webhookToken
+                            data.webhookPort
                         )
                     );
                     const results = await Promise.all(logPromises);
@@ -101,8 +97,7 @@ export default class Webhook {
                 const result = await Webhook.sendMessageToWebhook(
                     logData,
                     data.webhookUrl,
-                    data.webhookPort,
-                    data.webhookToken
+                    data.webhookPort
                 );
                 responseArray.push(result);
             }
@@ -114,8 +109,7 @@ export default class Webhook {
     public static async sendMessageToWebhook(
         logData: LogLine,
         webhookUrl: string,
-        webhookPort: number,
-        webhookToken: string
+        webhookPort: number
     ): Promise<number> {
         // Helper function to validate timestamp format
         // Format: MM/DD/YYYY-HH:MM:SS.microseconds
@@ -156,7 +150,7 @@ export default class Webhook {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        token: webhookToken,
+                        token: Auth.botToken,
                         data: logData,
                     }),
                     //@ts-expect-error it is necessary because TS doesn't know it
@@ -182,28 +176,31 @@ export default class Webhook {
             }
         }
     }
-    public static  async getAuthtoken(firstTime:boolean = false,webhookData: webhookData):number{
+    public static async getAuthtoken(firstTime:boolean = false,webhookData: webhookData):Promise<number>{
         let urlAdd = "";
         if(firstTime && ! Auth.isAuthenticated){
             urlAdd = "/firstAuth";
         };
+        const { publicIpv4 } = await import('public-ip');
         const response = await fetch(
             `https://${webhookData.webhookUrl}:${webhookData.webhookPort}/webhook${urlAdd}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    token: Auth.genSelfMadeToken(await publicIpv4())
+                    token: Auth.genSelfMadeToken(await publicIpv4()),
                 }),
             }
         );
         
-        if (!response.body||response.body.token || !response.body.expires){
+        const data = await response.json() as authResponse;
+        if (!data || !data.token || !data.expires){
             return 1;
         }else{
             Auth.isAuthenticated = true; 
-            Auth.setBotToken(response.body.token);
-            Auth.startTokenExpiry(response.body.expires);
+            Auth.setBotToken(data.token);
+            Auth.startTokenExpiry(data.expires, webhookData);
+            return 0;
         };
     }
 }

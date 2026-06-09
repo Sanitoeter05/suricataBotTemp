@@ -11,6 +11,8 @@ export interface LogLine {
     revision: string;
 }
 
+export type authResponse = {token: string; expires: number}; 
+
 export type TestResult = [number, number, number, boolean];
 
 interface unitTestParser {
